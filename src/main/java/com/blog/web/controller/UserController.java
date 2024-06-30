@@ -8,8 +8,8 @@ import com.blog.web.entity.User;
 import com.blog.web.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +21,8 @@ import java.util.UUID;
  * 用户表 前端控制器
  * </p>
  *
- * @author canghui
- * @since 2024-05-05
+ * @author 苍晖
+ * @since 2024-07-01
  */
 @Controller
 @RequestMapping("/api/user")
@@ -252,3 +252,4 @@ public class UserController {
         return Result.success("注册成功！");
     }
 }
+

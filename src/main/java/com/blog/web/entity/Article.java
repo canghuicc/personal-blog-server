@@ -2,8 +2,6 @@ package com.blog.web.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -12,10 +10,9 @@ import java.time.LocalDateTime;
  * 文章表
  * </p>
  *
- * @author canghui
- * @since 2024-05-05
+ * @author 苍晖
+ * @since 2024-07-01
  */
-@Data
 public class Article implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -61,4 +58,81 @@ public class Article implements Serializable {
      */
     private LocalDateTime updatedAt;
 
+    public Integer getArticleId() {
+        return articleId;
+    }
+
+    public void setArticleId(Integer articleId) {
+        this.articleId = articleId;
+    }
+
+    public String getArticleTitle() {
+        return articleTitle;
+    }
+
+    public void setArticleTitle(String articleTitle) {
+        this.articleTitle = articleTitle;
+    }
+
+    public String getArticleContent() {
+        return articleContent;
+    }
+
+    public void setArticleContent(String articleContent) {
+        this.articleContent = articleContent;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public Integer getTagId() {
+        return tagId;
+    }
+
+    public void setTagId(Integer tagId) {
+        this.tagId = tagId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Article{" +
+            "articleId = " + articleId +
+            ", articleTitle = " + articleTitle +
+            ", articleContent = " + articleContent +
+            ", userId = " + userId +
+            ", categoryId = " + categoryId +
+            ", tagId = " + tagId +
+            ", createdAt = " + createdAt +
+            ", updatedAt = " + updatedAt +
+        "}";
+    }
 }

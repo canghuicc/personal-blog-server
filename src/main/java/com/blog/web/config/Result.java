@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author 苍晖
+ * @since 2024/7/1 上午11:50
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -114,4 +118,3 @@ public class Result<T> {
     }
 
 }
-

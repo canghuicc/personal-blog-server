@@ -12,7 +12,7 @@ public class CodeGenerator {
     public static void main(String[] args) {
         String url="jdbc:mysql://localhost:3306/personal_blog_db";
         String username="root";
-        String password="jth20030506";
+        String password="123456";
         String outputDir="E:\\MyCode\\java\\personal-blog-server\\src\\main\\java";
         String parent="com.blog";
         String moduleName = "web";
@@ -20,7 +20,7 @@ public class CodeGenerator {
         String tables="article,category,comment,media,tag,user";
         FastAutoGenerator.create(url, username, password)
                 .globalConfig(builder -> {
-                    builder.author("canghui") // 设置作者
+                    builder.author("苍晖") // 设置作者
                             //.enableSwagger() // 开启 swagger 模式
                             //.fileOverride() // 覆盖已生成文件
                             .outputDir(outputDir); // 指定输出目录

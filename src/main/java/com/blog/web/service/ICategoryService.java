@@ -1,15 +1,15 @@
 package com.blog.web.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.blog.web.entity.Category;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
  * <p>
  * 分类表 服务类
  * </p>
  *
- * @author canghui
- * @since 2024-05-05
+ * @author 苍晖
+ * @since 2024-07-01
  */
 public interface ICategoryService extends IService<Category> {
 

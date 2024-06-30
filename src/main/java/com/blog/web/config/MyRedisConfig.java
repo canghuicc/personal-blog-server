@@ -20,6 +20,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+/**
+ * @author 苍晖
+ * @since 2024/7/1 上午11:51
+ */
 @Configuration
 public class MyRedisConfig {
 

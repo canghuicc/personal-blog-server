@@ -6,6 +6,12 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ *
+ * @author 苍晖
+ * @since 2024/7/1 上午11:48
+ *
+ */
 @Component
 public class TimestampHandler {
 
@@ -43,29 +49,29 @@ public class TimestampHandler {
      * @param setUpdatedAt 是否设置更新时间。如果为true，则会将当前时间设置为实体的更新时间。
      */
     private void preprocess(Object entity, boolean setCreatedAt, boolean setUpdatedAt) {
-    try {
-        // 获取实体类的Class对象
-        Class<?> entityClass = entity.getClass();
+        try {
+            // 获取实体类的Class对象
+            Class<?> entityClass = entity.getClass();
 
-        // 获取实体类中的createdAt字段
-        Field createdAtField = entityClass.getDeclaredField("createdAt");
-        createdAtField.setAccessible(true);
+            // 获取实体类中的createdAt字段
+            Field createdAtField = entityClass.getDeclaredField("createdAt");
+            createdAtField.setAccessible(true);
 
-        // 如果需要，设置创建时间
-        if (setCreatedAt) {
-            createdAtField.set(entity, LocalDateTime.now());
+            // 如果需要，设置创建时间
+            if (setCreatedAt) {
+                createdAtField.set(entity, LocalDateTime.now());
+            }
+
+            // 检查updatedAt字段是否存在，如果存在则进行设置
+            if (setUpdatedAt) {
+                Field updatedAtField = entityClass.getDeclaredField("updatedAt");
+                updatedAtField.setAccessible(true);
+                updatedAtField.set(entity, LocalDateTime.now());
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // 如果在处理过程中出现异常，则抛出运行时异常
+            throw new RuntimeException("获取时间错误", e);
         }
-
-        // 检查updatedAt字段是否存在，如果存在则进行设置
-        if (setUpdatedAt) {
-            Field updatedAtField = entityClass.getDeclaredField("updatedAt");
-            updatedAtField.setAccessible(true);
-            updatedAtField.set(entity, LocalDateTime.now());
-        }
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-        // 如果在处理过程中出现异常，则抛出运行时异常
-        throw new RuntimeException("获取时间错误", e);
     }
-}
 
 }

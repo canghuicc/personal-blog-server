@@ -7,8 +7,8 @@ import com.blog.web.entity.Tag;
 import com.blog.web.mapper.TagMapper;
 import com.blog.web.service.ITagService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
@@ -17,8 +17,8 @@ import java.util.List;
  * 标签表 前端控制器
  * </p>
  *
- * @author canghui
- * @since 2024-05-05
+ * @author 苍晖
+ * @since 2024-07-01
  */
 @Controller
 @RequestMapping("/api/tag")
