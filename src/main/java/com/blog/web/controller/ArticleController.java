@@ -7,8 +7,8 @@ import com.blog.web.config.TimestampHandler;
 import com.blog.web.entity.Article;
 import com.blog.web.mapper.ArticleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

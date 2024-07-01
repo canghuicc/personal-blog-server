@@ -1,7 +1,7 @@
 package com.blog.web.mapper;
 
-import com.blog.web.entity.Media;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.blog.web.entity.Media;
 
 /**
  * <p>
