@@ -7,8 +7,8 @@ import com.blog.web.entity.Tag;
 import com.blog.web.mapper.TagMapper;
 import com.blog.web.service.ITagService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
