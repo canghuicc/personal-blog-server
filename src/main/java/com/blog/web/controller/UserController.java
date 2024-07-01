@@ -8,6 +8,7 @@ import com.blog.web.entity.User;
 import com.blog.web.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,9 @@ public class UserController {
     private UserMapper userMapper;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -47,6 +51,8 @@ public class UserController {
         // 在插入用户数据前，对用户信息执行时间戳处理
         // 在保存用户之前，处理时间戳
         timestampHandler.preprocessForInsert(user);
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getPassword, passwordEncoder.encode(user.getPassword()));
 
         // 调用UserMapper的insert方法插入用户数据
         int rows = userMapper.insert(user);
@@ -94,7 +100,7 @@ public class UserController {
         // 如果密码非空，更新密码字段。这里存在重复赋值的问题，可能是一个笔误。
         // 如果密码非空，更新密码
         // 检查前端传来的非空字段并进行更新
-        if (StringUtils.isNotBlank(user.getPassword())) {
+        if (StringUtils.isNotBlank(passwordEncoder.encode(user.getPassword()))) {
             user.setPassword(user.getPassword());
         }
         // 如果电子邮件非空，更新电子邮件字段。
@@ -191,54 +197,62 @@ public class UserController {
 
     /**
      * 用户登录接口
+     * <p>
+     * 通过接收POST请求来验证用户凭据，并返回登录令牌。
      *
-     * @param user 包含用户名和密码的用户对象，通过RequestBody接收前端传来的JSON数据
-     * @return 返回一个结果对象，如果登录成功，返回包含token的Map；如果登录失败，返回错误信息
+     * @param user 包含登录凭据的用户对象，用户名和密码。
+     * @return 如果凭据有效，返回包含登录令牌的映射；否则返回错误消息。
      */
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody User user) {
-        // 根据传入的用户名和密码查询数据库中的用户信息
+        // 根据用户名查询数据库中的用户记录
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getUsername, user.getUsername());
-        queryWrapper.eq(User::getPassword, user.getPassword());
         User user1 = userMapper.selectOne(queryWrapper);
 
         Map<String, Object> map;
-        // 判断用户信息是否查询成功，若成功则生成并返回token
-        if (user1 != null) {
+        // 验证用户凭据是否正确
+        if (user1 != null && passwordEncoder.matches(user.getPassword(), user1.getPassword())) {
+            // 生成唯一的登录令牌
             // 生成token
             String token = "user:" + UUID.randomUUID();
             map = new HashMap<>();
             map.put("token", token);
 
-            // 将用户信息（不含密码）与token绑定，存储到Redis中，有效期30分钟
+            // 从返回的用户对象中移除密码信息，以增强安全性
             user1.setPassword(null);
-//            redisTemplate.opsForValue().set(token, user1,30, TimeUnit.MINUTES);
+//        redisTemplate.opsForValue().set(token, user1,30, TimeUnit.MINUTES);
         } else {
-            // 登录失败，返回错误信息
+            // 如果凭据无效，返回错误消息
             return Result.error("用户名或密码错误");
         }
-        // 返回登录结果
+        // 返回包含登录令牌的映射
         return Result.success(map);
     }
 
     /**
-     * 用户注册接口
+     * 用户注册接口。
+     * 通过接收@RequestBody注解的User对象，注册新用户。首先检查用户名是否已存在，并验证密码是否匹配，
+     * 如果存在相同用户名和密码，则返回错误信息。如果不存在，则对用户信息进行处理（如加密密码）后插入数据库，
+     * 并返回注册成功信息。
      *
-     * @param user 用户信息对象，包含用户名、密码、邮箱和用户昵称
-     * @return 返回操作结果，如果注册成功返回成功信息，如果用户名或邮箱已存在返回错误信息
+     * @param user 用户信息对象，包含用户名、密码、邮箱和昵称等信息。
+     * @return 如果注册成功，返回包含成功消息的结果对象；如果用户名已存在，返回包含错误消息的结果对象。
      */
     @PostMapping("/register")
     public Result<User> register(@RequestBody User user) {
-        // 查询数据库中是否存在相同的用户名和密码
+        // 检查用户名是否已存在
+        // 查询数据库中是否存在相同的用户名
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getUsername, user.getUsername());
-        queryWrapper.eq(User::getPassword, user.getPassword());
-        if (userMapper.selectOne(queryWrapper) != null) {
-            // 如果存在相同的用户名和密码，则返回错误信息
+        User user1 = userMapper.selectOne(queryWrapper);
+        if (user1 != null) {
+            // 如果存在相同的用户名，则返回错误信息
             return Result.error("用户名已存在");
         }
 
+        // 设置新用户信息，并加密密码
+        queryWrapper.eq(User::getPassword, passwordEncoder.encode(user.getPassword()));
         // 获取邮箱和昵称字段存入queryWrapper
         queryWrapper.eq(User::getEmail, user.getEmail());
         queryWrapper.eq(User::getUserNickname, user.getUserNickname());
@@ -249,5 +263,6 @@ public class UserController {
         // 注册成功，返回成功信息
         return Result.success("注册成功！");
     }
+
 }
 
