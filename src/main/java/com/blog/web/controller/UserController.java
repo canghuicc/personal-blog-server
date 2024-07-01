@@ -17,9 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * <p>
  * 用户表 前端控制器
- * </p>
  *
  * @author 苍晖
  * @since 2024-07-01

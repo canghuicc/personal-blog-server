@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * <p>
  * 媒体文件表 前端控制器
- * </p>
  *
  * @author 苍晖
  * @since 2024-07-01
