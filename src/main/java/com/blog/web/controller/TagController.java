@@ -18,7 +18,7 @@ import java.util.List;
  * @author 苍晖
  * @since 2024-07-01
  */
-@Controller
+@RestController
 @RequestMapping("/api/tag")
 public class TagController {
 

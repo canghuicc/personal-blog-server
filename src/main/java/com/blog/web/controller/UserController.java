@@ -22,7 +22,7 @@ import java.util.UUID;
  * @author 苍晖
  * @since 2024-07-01
  */
-@Controller
+@RestController
 @RequestMapping("/api/user")
 public class UserController {
 
