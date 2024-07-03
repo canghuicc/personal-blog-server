@@ -44,10 +44,14 @@ public class UserController {
      */
     @PostMapping("/adduser")
     public Result<User> saveUser(@RequestBody User user) {
-        // 在插入用户数据前，对用户信息执行时间戳处理
-        // 在保存用户之前，处理时间戳
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getPassword, passwordEncoder.encode(user.getPassword()));
+        wrapper.eq(User::getUsername, user.getUsername());
+        User user1 = userMapper.selectOne(wrapper);
+        if (user1 != null) {
+            // 如果存在相同的用户名，则返回错误信息
+            return Result.error("用户名已存在");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
@@ -97,8 +101,8 @@ public class UserController {
         // 如果密码非空，更新密码字段。这里存在重复赋值的问题，可能是一个笔误。
         // 如果密码非空，更新密码
         // 检查前端传来的非空字段并进行更新
-        if (StringUtils.isNotBlank(passwordEncoder.encode(user.getPassword()))) {
-            user.setPassword(user.getPassword());
+        if (StringUtils.isNotBlank(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         // 如果电子邮件非空，更新电子邮件字段。
         // 如果电子邮件非空，更新电子邮件
@@ -141,7 +145,7 @@ public class UserController {
     }
 
     /**
-     * 根据用户名和电子邮件获取用户信息。
+     * 根据用户名或电子邮件获取用户信息。
      * <p>
      * 该接口支持通过用户名或电子邮件查询用户。如果同时提供了用户名和电子邮件，则返回匹配这两个条件的用户；
      * 如果只提供了用户名或电子邮件中的一个，则返回匹配该条件的用户。如果查询条件都不满足，则返回错误信息。
@@ -182,10 +186,10 @@ public class UserController {
      * @return Result<User> 返回一个结果对象，其中包含所有用户的信息。如果操作失败，结果对象中会包含相应的错误信息。
      */
     @GetMapping("/getalluser")
-    public Result<User> getAllUser() {
+    public Result<List<User>> getAllUser() {
         List<User> users = userMapper.selectList(null);
         if (users != null) {
-            return Result.success((User) users);
+            return Result.success(users);
         } else {
             return Result.error("获取失败");
         }
@@ -202,9 +206,9 @@ public class UserController {
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody User user) {
         // 根据用户名查询数据库中的用户记录
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, user.getUsername());
-        User user1 = userMapper.selectOne(queryWrapper);
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, user.getUsername());
+        User user1 = userMapper.selectOne(wrapper);
 
         Map<String, Object> map;
         // 验证用户凭据是否正确
@@ -239,9 +243,9 @@ public class UserController {
     public Result<User> register(@RequestBody User user) {
         // 检查用户名是否已存在
         // 查询数据库中是否存在相同的用户名
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, user.getUsername());
-        User user1 = userMapper.selectOne(queryWrapper);
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, user.getUsername());
+        User user1 = userMapper.selectOne(wrapper);
         if (user1 != null) {
             // 如果存在相同的用户名，则返回错误信息
             return Result.error("用户名已存在");
