@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户表 前端控制器
@@ -98,44 +99,31 @@ public class UserController {
      */
     @PutMapping("/updateuser")
     public Result<User> updateUser(@RequestBody User user) {
-        // 如果密码非空，更新密码字段。这里存在重复赋值的问题，可能是一个笔误。
         // 如果密码非空，更新密码
-        // 检查前端传来的非空字段并进行更新
         if (StringUtils.isNotBlank(user.getPassword())) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-        // 如果电子邮件非空，更新电子邮件字段。
         // 如果电子邮件非空，更新电子邮件
         if (StringUtils.isNotBlank(user.getEmail())) {
             user.setEmail(user.getEmail());
         }
-        // 如果头像路径非空，更新头像路径字段。
         // 如果头像路径非空，更新头像路径
         if (StringUtils.isNotBlank(user.getAvatarPath())) {
             user.setAvatarPath(user.getAvatarPath());
         }
-        // 如果用户昵称非空，更新用户昵称字段。
         // 如果用户昵称非空，更新用户昵称
         if (StringUtils.isNotBlank(user.getUserNickname())) {
             user.setUserNickname(user.getUserNickname());
         }
-        // 如果用户角色非空，更新用户角色字段。
         // 如果用户角色非空，更新用户角色
         if (user.getUserRole() != null) {
             user.setUserRole(user.getUserRole());
         }
-
-        // 构建查询条件，指定更新用户时使用的条件为用户ID等于传入的用户ID。
-        // 构建查询Wrapper，根据用户ID进行更新
-        // 使用LambdaQueryWrapper更新记录，假设userId是主键
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUserId, user.getUserId());
         user.setUpdatedAt(LocalDateTime.now());
 
-        // 使用userMapper更新用户信息。这里没有处理更新返回值，通常情况下更新操作会返回受影响的行数。
         // 更新用户信息
         // 根据非空属性更新记录
-        int rows = userMapper.update(user, wrapper);
+        int rows = userMapper.updateById(user);
 
         if (rows > 0) {
             return Result.success("更新成功");
@@ -221,7 +209,7 @@ public class UserController {
 
             // 从返回的用户对象中移除密码信息，以增强安全性
             user1.setPassword(null);
-//        redisTemplate.opsForValue().set(token, user1,30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set("user_token:", token, 30, TimeUnit.MINUTES);
         } else {
             // 如果凭据无效，返回错误消息
             return Result.error("用户名或密码错误");
@@ -229,6 +217,41 @@ public class UserController {
         // 返回包含登录令牌的映射
         return Result.success(map);
     }
+
+    /**
+     * 管理员登录接口。
+     * 通过接收用户名和密码，验证管理员身份，并返回登录令牌。
+     *
+     * @param user 包含用户名和密码的用户对象。
+     * @return 如果登录成功，返回包含登录令牌的映射；如果登录失败，返回错误消息。
+     */
+    @PostMapping("/admin/login")
+    public Result<Map<String, Object>> AdminLogin(@RequestBody User user) {
+        // 根据用户名查询数据库中的用户记录
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, user.getUsername());
+        User user1 = userMapper.selectOne(wrapper);
+
+        Map<String, Object> map;
+        // 验证用户是否存在，密码是否正确，并且用户角色是否为管理员
+        if (user1 != null && passwordEncoder.matches(user.getPassword(), user1.getPassword()) && user1.getUserRole() == 1) {
+            // 生成token
+            String token = "AdminUser:" + UUID.randomUUID();
+            map = new HashMap<>();
+            map.put("token", token);
+
+            // 从返回的用户对象中移除密码信息，以增强安全性
+            user1.setPassword(null);
+            // 将登录令牌存储在Redis中，有效期30分钟
+            redisTemplate.opsForValue().set("AdminUser_token:", token, 30, TimeUnit.MINUTES);
+        } else {
+            // 如果凭据无效，返回错误消息
+            return Result.error("用户名或密码错误");
+        }
+        // 返回包含登录令牌的映射
+        return Result.success(map);
+    }
+
 
     /**
      * 用户注册接口。

@@ -5,9 +5,15 @@ import com.blog.web.config.Result;
 import com.blog.web.entity.Media;
 import com.blog.web.mapper.MediaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -20,26 +26,61 @@ import java.util.List;
 @RequestMapping("/api/media")
 public class MediaController {
 
+    @Value("${spring.servlet.multipart.location}")
+    private String uploadPath;
+
     @Autowired
     private MediaMapper mediaMapper;
 
     /**
-     * 通过POST请求添加媒体信息。
+     * 通过POST请求添加媒体文件。
      *
-     * @param media 包含媒体详细信息的实体对象。
-     * @return 如果添加成功，返回一个包含成功消息和添加的媒体信息的结果对象；如果添加失败，返回一个包含错误消息的结果对象。
+     * @param file 上传的媒体文件。
+     * @param mediaName 媒体文件的名称。
+     * @return 添加结果，包括成功与否和添加的媒体信息。
      */
     @PostMapping("/addmedia")
-    public Result<Media> addMedia(@RequestBody Media media) {
-        // 调用MediaMapper的insert方法插入媒体信息
-        int rows = mediaMapper.insert(media);
-        // 判断插入操作影响的行数，如果大于0则表示插入成功
-        if (rows > 0) {
-            return Result.success("添加成功");
-        } else {
-            return Result.error("添加失败");
+    public Result<Media> addMedia(@RequestParam("file") MultipartFile file, @RequestParam("mediaName") String mediaName) {
+        try {
+            // 读取上传文件的内容字节。
+            // 获取文件的字节数组
+            byte[] bytes = file.getBytes();
+
+            // 构建文件在服务器上的存储路径。
+            // 构建文件路径
+            Path path = Paths.get(uploadPath + File.separator + file.getOriginalFilename());
+
+            // 将文件内容写入到服务器的指定路径。
+            // 将文件保存到指定路径
+            Files.write(path, bytes);
+
+            // 创建Media对象，用于存储媒体信息。
+            // 构建媒体对象并设置属性
+            Media media = new Media();
+            // 设置媒体文件的名称。
+            media.setMediaName(mediaName);
+            // 设置媒体文件的存储路径。
+            media.setMediaPath(path.toString());
+
+            // 调用MediaMapper的insert方法，将媒体信息插入数据库。
+            // 调用MediaMapper的insert方法插入媒体信息
+            int rows = mediaMapper.insert(media);
+
+            // 根据插入操作的影响行数判断添加是否成功。
+            // 判断插入操作影响的行数，如果大于0则表示插入成功
+            if (rows > 0) {
+                // 添加成功，返回成功结果和添加的媒体信息。
+                return Result.success("添加成功", media);
+            } else {
+                // 添加失败，返回错误结果。
+                return Result.error("添加失败");
+            }
+        } catch (IOException e) {
+            // 文件上传过程中发生IO异常，返回错误结果。
+            return Result.error("文件上传失败");
         }
     }
+
 
     /**
      * 通过媒体ID删除媒体信息。
@@ -71,11 +112,11 @@ public class MediaController {
      * @return Result<Media> 包含所有媒体信息的结果对象。结果对象中包含了操作的成功状态及媒体信息数据。
      */
     @GetMapping("/getallmedia")
-    public Result<Media> getAllMedia() {
+    public Result<List<Media>> getAllMedia() {
         // 查询所有媒体信息
         List<Media> mediaList = mediaMapper.selectList(null);
         if (mediaList != null) {
-            return Result.success((Media) mediaList);
+            return Result.success(mediaList);
         } else {
             return Result.error();
         }

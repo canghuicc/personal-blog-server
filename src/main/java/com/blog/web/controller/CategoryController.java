@@ -1,6 +1,5 @@
 package com.blog.web.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Category;
 import com.blog.web.mapper.CategoryMapper;
@@ -75,15 +74,9 @@ public class CategoryController {
      */
     @PutMapping("/updatecategory")
     public Result<Category> updateCategory(@RequestBody Category category) {
-        // 创建LambdaQueryWrapper用于构建查询条件
-        LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
-        // 设置查询条件：分类ID和分类名称必须与传入的category对象相同
-        wrapper.eq(Category::getCategoryId, category.getCategoryId());
-        wrapper.eq(Category::getCategoryName, category.getCategoryName());
         category.setUpdatedAt(LocalDateTime.now());
 
-        // 调用categoryMapper的update方法，使用wrapper作为更新条件，更新category对象中的数据
-        int rows = categoryMapper.update(category, wrapper);
+        int rows = categoryMapper.updateById(category);
 
         // 根据update方法的返回值判断更新操作是否成功
         if (rows > 0) {
@@ -121,10 +114,10 @@ public class CategoryController {
      * @return Result<Category> - 包含所有分类的列表及操作状态的信息。
      */
     @GetMapping("/getallcategory")
-    public Result<Category> getAllCategory() {
+    public Result<List<Category>> getAllCategory() {
         // 调用categoryMapper的selectList方法，不传入任何条件，获取所有分类信息
         List<Category> categoryList = categoryMapper.selectList(null);
         // 将获取到的分类列表封装在Result对象中，以成功状态返回
-        return Result.success((Category) categoryList);
+        return Result.success(categoryList);
     }
 }

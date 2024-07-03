@@ -1,15 +1,19 @@
 package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Comment;
 import com.blog.web.mapper.CommentMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 评论表 前端控制器
@@ -32,8 +36,10 @@ public class CommentController {
      * 如果添加失败，返回错误的Result对象，包含评论失败的消息。
      */
     @PostMapping("/addcomment")
-    public Result<Comment> addComment(@RequestBody Comment comment) {
+    public Result<Comment> addComment(@RequestBody Comment comment, HttpServletRequest request) {
         comment.setCreatedAt(LocalDateTime.now());
+        String clientIp=getClientIp(request);
+        comment.setCommentIp(clientIp);
         // 将评论对象插入数据库，返回影响的行数
         int rows = commentMapper.insert(comment);
         // 判断插入操作是否成功，成功则返回成功结果，失败则返回错误结果
@@ -52,11 +58,9 @@ public class CommentController {
      */
     @DeleteMapping("/deletecomment/{commentId}")
     public Result<Comment> removeComment(@PathVariable("commentId") Integer commentId) {
-        // 调用评论Mapper接口，根据ID删除评论
         // 根据评论ID删除评论，返回影响的行数
         int rows = commentMapper.deleteById(commentId);
         // 判断删除操作的影响行数，如果大于0，则删除成功
-        // 判断删除操作是否成功，成功则返回成功结果，失败则返回错误结果
         if (rows > 0) {
             return Result.success("删除成功");
         } else {
@@ -65,51 +69,39 @@ public class CommentController {
     }
 
     /**
-     * 根据评论ID、文章ID、父评论ID和用户ID获取评论信息。
-     * 支持通过多个条件组合查询，返回符合条件的评论。如果指定了评论ID，则返回第一个匹配的评论；
-     * 否则，返回所有匹配的评论列表。
+     * 根据文章ID获取评论列表。
+     * <p>
+     * 本方法通过查询数据库中与指定文章ID相关的评论，然后构建一个评论树状结构返回。
+     * 如果没有指定文章ID，则返回所有评论。评论数据以List<Map<String, Object>>的形式返回，
+     * 其中Map代表每个评论及其相关信息。
      *
-     * @param commentId 评论ID，可选参数。
-     * @param articleId 文章ID，可选参数。
-     * @param parentId  父评论ID，可选参数。
-     * @param userId    用户ID，可选参数。
-     * @return 如果找到评论，则返回评论对象或评论列表；如果未找到评论，则返回错误信息。
+     * @param articleId 文章ID，可选参数。如果指定了文章ID，则只返回该文章的评论。
+     * @return 返回一个包含评论树的Result对象。如果未找到任何评论，则Result对象的data字段为空。
      */
     @GetMapping("/getcomment")
-    public Result<Comment> getComment(
-            @RequestParam(value = "commentId", required = false) Integer commentId,
-            @RequestParam(value = "articleId", required = false) Integer articleId,
-            @RequestParam(value = "parentId", required = false) Integer parentId,
-            @RequestParam(value = "userId", required = false) Integer userId) {
+    public Result<List<Map<String, Object>>> getComment(
+            @RequestParam(value = "articleId", required = false) Integer articleId) {
+        // 初始化查询条件
         // 创建查询条件包装对象
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
-        // 根据传入的ID添加相应的查询条件
-        if (commentId != null) {
-            wrapper.eq(Comment::getCommentId, commentId);
-        }
+        // 如果提供了文章ID，则根据文章ID过滤评论
         if (articleId != null) {
             wrapper.eq(Comment::getArticleId, articleId);
         }
-        if (parentId != null) {
-            wrapper.eq(Comment::getParentId, parentId);
-        }
-        if (userId != null) {
-            wrapper.eq(Comment::getUserId, userId);
-        }
+        // 查询符合條件的评论列表
         // 根据查询条件获取评论列表
         List<Comment> commentList = commentMapper.selectList(wrapper);
 
+        // 构建评论树状结构
         // 判断查询结果是否存在
-        if (commentList != null && !commentList.isEmpty()) {
-            // 如果指定了评论ID，返回第一个评论；否则，返回整个评论列表
-            if (commentId != null) {
-                return Result.success(commentList.get(0));
-            } else {
-                return Result.success((Comment) commentList);
-            }
+        if (commentList != null) {
+            List<Map<String, Object>> commentTree = buildCommentTree(commentList);
+            // 返回带有评论树的Result对象
+            return Result.success(commentTree);
         } else {
-            // 如果未找到评论，返回错误信息
-            return Result.error("未找到评论");
+            // 如果未找到评论，返回一个空的Result对象
+            // 如果未找到评论，返回空
+            return Result.success();
         }
     }
 
@@ -119,16 +111,118 @@ public class CommentController {
      * @return Result<Comment> - 返回包含所有评论的Result对象，如果查询失败，则返回错误信息
      */
     @GetMapping("/getallcomment")
-    public Result<Comment> getAllComment() {
+    public Result<List<Comment>> getAllComment() {
         // 调用commentMapper的selectList方法查询所有评论
         List<Comment> commentList = commentMapper.selectList(null);
 
         // 判断查询结果是否为空，如果不为空，则返回查询成功的结果，包含评论列表
         if (commentList != null) {
-            return Result.success((Comment) commentList);
+            return Result.success(commentList);
         } else {
             // 如果查询结果为空，则返回查询失败的错误信息
             return Result.error("查询失败");
         }
     }
+
+    /**
+     * 通过PUT请求更新评论信息。
+     *
+     * @param comment 包含更新后评论信息的实体对象。
+     * @return 如果更新成功，返回包含成功消息的结果对象；如果更新失败，返回包含错误消息的结果对象。
+     */
+    @PutMapping("/updatecomment")
+    public Result<Comment> updateComment(@RequestBody Comment comment) {
+        // 调用commentMapper的updateById方法更新评论
+        int rows = commentMapper.updateById(comment);
+
+        // 判断更新操作是否成功，如果成功，则返回更新成功的结果，否则返回更新失败的错误信息
+        if (rows > 0) {
+            return Result.success("更新成功");
+        } else {
+            return Result.error("更新失败");
+        }
+    }
+
+    /**
+     * 构建评论树。
+     * <p>
+     * 通过将评论分组到它们的父评论中，构建一个评论树结构。
+     * 这个方法专注于处理评论的数据结构转换，不涉及具体的业务逻辑。
+     *
+     * @param comments 原始的评论列表，这些评论可能是树结构中的任意节点。
+     * @return 返回一个列表，包含所有根评论的树结构表示。
+     */
+    // 构建评论树方法
+    private List<Map<String, Object>> buildCommentTree(List<Comment> comments) {
+        // 根据父评论ID将评论分组，以便后续构建评论树。
+        // 使用一个map来存储每个parentId对应的子评论列表
+        Map<Integer, List<Comment>> commentMap = comments.stream().collect(Collectors.groupingBy(Comment::getParentId));
+
+        // 获取所有父评论ID为0的评论（即根评论），并将其转换为树结构表示。
+        List<Map<String, Object>> rootComments = commentMap.getOrDefault(0, new ArrayList<>())
+                .stream()
+                .map(comment -> convertToMap(comment, commentMap))
+                .collect(Collectors.toList());
+
+        // 返回构建好的根评论列表。
+        return rootComments;
+    }
+
+    /**
+     * 将评论对象及其子评论转换为Map结构，便于后续处理或传输。
+     *
+     * @param comment    当前评论对象，包含评论内容和评论ID。
+     * @param commentMap 一个映射，其中键是评论ID，值是与该ID相关的评论列表。这个映射用于查找当前评论的子评论。
+     * @return 返回一个Map，包含当前评论和它的子评论（如果存在）。
+     */
+    private Map<String, Object> convertToMap(Comment comment, Map<Integer, List<Comment>> commentMap) {
+        // 初始化一个Map来存储当前评论和它的子评论
+        Map<String, Object> map = new HashMap<>();
+        // 将当前评论对象放入map中
+        map.put("comment", comment);
+
+        // 通过评论ID从commentMap中获取当前评论的子评论列表
+        List<Comment> children = commentMap.get(comment.getCommentId());
+        // 如果子评论存在且不为空，则将它们转换为Map结构并添加到当前Map中
+        if (children != null && !children.isEmpty()) {
+            // 使用stream将子评论列表转换为Map列表
+            List<Map<String, Object>> childrenMaps = children.stream()
+                    .map(child -> convertToMap(child, commentMap)) // 对每个子评论递归调用本方法
+                    .collect(Collectors.toList());
+            // 将子评论的Map列表放入当前Map中
+            map.put("children", childrenMaps);
+        }
+        return map;
+    }
+
+    /**
+     * 获取客户端IP地址的方法。
+     *
+     * @param request HttpServletRequest对象，用于获取客户端IP地址。
+     * @return 客户端IP地址。
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // 对于多次代理的情况，第一个IP为客户端真实IP
+        if (ip != null && ip.length() > 15 && ip.contains(",")) {
+            ip = ip.split(",")[0];
+        }
+        return ip;
+    }
+
 }

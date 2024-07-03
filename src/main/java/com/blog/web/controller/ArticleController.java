@@ -1,6 +1,5 @@
 package com.blog.web.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Article;
@@ -80,12 +79,12 @@ public class ArticleController {
      * 如果查询失败，Result的状态为失败，数据可能为空或包含错误信息。
      */
     @GetMapping("/getallarticle")
-    public Result<Article> getAllArticle() {
+    public Result<List<Article>> getAllArticle() {
         // 查询所有文章
         List<Article> articles = articleMapper.selectList(null);
         // 返回包含所有文章的Result对象
         if (articles != null) {
-            return Result.success((Article) articles);
+            return Result.success(articles);
         } else {
             return Result.error("查询失败！");
         }
@@ -140,12 +139,8 @@ public class ArticleController {
             article.setTagId(article.getTagId());
         }
 
-        // 构建查询条件，指定更新的文章ID
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getArticleId, article.getArticleId());
-
         // 更新数据库中的文章信息
-        int rows = articleMapper.update(article, wrapper);
+        int rows = articleMapper.updateById(article);
 
         // 根据更新影响的行数判断更新操作是否成功
         if (rows > 0) {

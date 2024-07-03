@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Tag;
 import com.blog.web.mapper.TagMapper;
-import com.blog.web.service.ITagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tag")
 public class TagController {
-
-    @Autowired
-    private ITagService tagService;
 
     @Autowired
     private TagMapper tagMapper;
@@ -82,15 +78,10 @@ public class TagController {
      */
     @PutMapping("/updatetag")
     public Result<Tag> updatetag(@RequestBody Tag tag) {
-        // 创建LambdaQueryWrapper用于构建查询条件
-        LambdaQueryWrapper<Tag> wrapper = new LambdaQueryWrapper<>();
-        // 设置查询条件：标签ID和标签名称必须与传入的tag对象相同
-        wrapper.eq(Tag::getTagId, tag.getTagId());
-        wrapper.eq(Tag::getTagName, tag.getTagName());
         tag.setUpdatedAt(LocalDateTime.now());
 
         // 调用tagMapper的update方法更新标签信息，传入更新条件和待更新的标签对象
-        int rows = tagMapper.update(tag, wrapper);
+        int rows = tagMapper.updateById(tag);
 
         // 根据update方法的返回值判断更新操作是否成功
         if (rows > 0) {
@@ -133,7 +124,7 @@ public class TagController {
      * @return Result<Tag> 结果对象，包含所有标签列表或错误信息。
      */
     @GetMapping("/getalltag")
-    public Result<Tag> getAllTag() {
+    public Result<List<Tag>> getAllTag() {
         // 调用tagMapper的selectList方法，不传入任何条件，查询所有标签
         // 调用tagMapper的selectList方法获取所有标签信息
         List<Tag> tags = tagMapper.selectList(null);
@@ -143,7 +134,7 @@ public class TagController {
         if (tags != null) {
             // 如果查询到标签，返回成功结果，并包含查询到的标签列表
             // 如果查询结果存在，则返回成功的Result，包含查询到的标签信息列表
-            return Result.success((Tag) tags);
+            return Result.success(tags);
         } else {
             // 如果未查询到标签，返回错误结果，包含“查询失败”信息
             // 如果查询结果不存在，则返回错误的Result，包含"查询失败！"信息

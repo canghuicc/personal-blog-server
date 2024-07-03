@@ -11,6 +11,21 @@ spring:
     redis:
       port: 6379
       host: localhost
+      database: 0
+      jedis:
+        pool:
+          max-active: 100
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1
+      connect-timeout: 10000
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+      enabled: true
+      file-size-threshold: 2MB
+      location: /upload
 
 logging:
   charset:
