@@ -22,9 +22,6 @@ import java.util.List;
 public class TagController {
 
     @Autowired
-    private ITagService tagService;
-
-    @Autowired
     private TagMapper tagMapper;
 
     /**
