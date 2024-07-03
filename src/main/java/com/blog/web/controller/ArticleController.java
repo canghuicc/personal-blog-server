@@ -3,13 +3,12 @@ package com.blog.web.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.blog.web.config.Result;
-import com.blog.web.config.TimestampHandler;
 import com.blog.web.entity.Article;
 import com.blog.web.mapper.ArticleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -21,9 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/article")
 public class ArticleController {
-
-    @Autowired
-    private TimestampHandler timestampHandler;
 
     @Autowired
     private ArticleMapper articleMapper;
@@ -39,9 +35,8 @@ public class ArticleController {
      */
     @PostMapping("/addarticle")
     public Result<Article> addArticle(@RequestBody Article article) {
-        // 在插入文章前，对文章的创建时间等进行预处理
-        // 对文章的创建时间等进行预处理
-        timestampHandler.preprocessForInsert(article);
+        article.setCreatedAt(LocalDateTime.now());
+        article.setUpdatedAt(LocalDateTime.now());
 
         // 将处理后的文章插入到数据库中，并返回插入操作影响的行数
         int rows = articleMapper.insert(article);
@@ -126,9 +121,7 @@ public class ArticleController {
      */
     @PutMapping("/updatearticle")
     public Result<Article> updateArticle(@RequestBody Article article) {
-        // 对文章信息进行预处理，处理时间戳等信息
-        // 在更新之前对文章信息进行预处理
-        timestampHandler.preprocessForUpdate(article);
+        article.setUpdatedAt(LocalDateTime.now());
 
         // 如果文章标题不为空，更新文章标题
         if (StringUtils.isNotEmpty(article.getArticleTitle())) {

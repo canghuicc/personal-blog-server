@@ -2,6 +2,7 @@ package com.blog.web.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 import java.io.Serializable;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @author 苍晖
  * @since 2024-07-01
  */
+@Data
 public class Media implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,36 +35,4 @@ public class Media implements Serializable {
      */
     private String mediaPath;
 
-    public Integer getMediaId() {
-        return mediaId;
-    }
-
-    public void setMediaId(Integer mediaId) {
-        this.mediaId = mediaId;
-    }
-
-    public String getMediaName() {
-        return mediaName;
-    }
-
-    public void setMediaName(String mediaName) {
-        this.mediaName = mediaName;
-    }
-
-    public String getMediaPath() {
-        return mediaPath;
-    }
-
-    public void setMediaPath(String mediaPath) {
-        this.mediaPath = mediaPath;
-    }
-
-    @Override
-    public String toString() {
-        return "Media{" +
-            "mediaId = " + mediaId +
-            ", mediaName = " + mediaName +
-            ", mediaPath = " + mediaPath +
-        "}";
-    }
 }

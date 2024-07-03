@@ -2,14 +2,13 @@ package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.web.config.Result;
-import com.blog.web.config.TimestampHandler;
 import com.blog.web.entity.Tag;
 import com.blog.web.mapper.TagMapper;
 import com.blog.web.service.ITagService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -21,9 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tag")
 public class TagController {
-
-    @Autowired
-    private TimestampHandler timestampHandler;
 
     @Autowired
     private ITagService tagService;
@@ -39,9 +35,9 @@ public class TagController {
      */
     @PostMapping("/addtag")
     public Result<Tag> addTag(@RequestBody Tag tag) {
-        // 在插入标签前，对其进行时间戳等预处理
         // 对标签对象进行插入前的预处理，例如设置创建时间等
-        timestampHandler.preprocessForInsert(tag);
+        tag.setCreatedAt(LocalDateTime.now());
+        tag.setUpdatedAt(LocalDateTime.now());
 
         // 调用标签Mapper插入标签到数据库
         int rows = tagMapper.insert(tag);
@@ -86,15 +82,12 @@ public class TagController {
      */
     @PutMapping("/updatetag")
     public Result<Tag> updatetag(@RequestBody Tag tag) {
-        // 对标签对象进行更新前的预处理
-        // 在更新之前对标签对象进行预处理
-        timestampHandler.preprocessForUpdate(tag);
-
         // 创建LambdaQueryWrapper用于构建查询条件
         LambdaQueryWrapper<Tag> wrapper = new LambdaQueryWrapper<>();
         // 设置查询条件：标签ID和标签名称必须与传入的tag对象相同
         wrapper.eq(Tag::getTagId, tag.getTagId());
         wrapper.eq(Tag::getTagName, tag.getTagName());
+        tag.setUpdatedAt(LocalDateTime.now());
 
         // 调用tagMapper的update方法更新标签信息，传入更新条件和待更新的标签对象
         int rows = tagMapper.update(tag, wrapper);

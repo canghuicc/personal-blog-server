@@ -3,15 +3,14 @@ package com.blog.web.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.blog.web.config.Result;
-import com.blog.web.config.TimestampHandler;
 import com.blog.web.entity.User;
 import com.blog.web.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +25,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-
-    @Autowired
-    private TimestampHandler timestampHandler;
 
     @Autowired
     private UserMapper userMapper;
@@ -50,9 +46,10 @@ public class UserController {
     public Result<User> saveUser(@RequestBody User user) {
         // 在插入用户数据前，对用户信息执行时间戳处理
         // 在保存用户之前，处理时间戳
-        timestampHandler.preprocessForInsert(user);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getPassword, passwordEncoder.encode(user.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
 
         // 调用UserMapper的insert方法插入用户数据
         int rows = userMapper.insert(user);
@@ -129,6 +126,7 @@ public class UserController {
         // 使用LambdaQueryWrapper更新记录，假设userId是主键
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUserId, user.getUserId());
+        user.setUpdatedAt(LocalDateTime.now());
 
         // 使用userMapper更新用户信息。这里没有处理更新返回值，通常情况下更新操作会返回受影响的行数。
         // 更新用户信息
@@ -153,9 +151,7 @@ public class UserController {
      * @return 如果找到用户，则返回用户的详细信息；如果未找到用户，则返回错误信息。
      */
     @GetMapping("/getuser")
-    public Result<User> getUser(
-            @RequestParam(value = "username", required = false) String username,
-            @RequestParam(value = "email", required = false) String email) {
+    public Result<User> getUser(@RequestParam(value = "username", required = false) String username, @RequestParam(value = "email", required = false) String email) {
         // 初始化查询条件
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
 
@@ -252,12 +248,14 @@ public class UserController {
         }
 
         // 设置新用户信息，并加密密码
-        queryWrapper.eq(User::getPassword, passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         // 获取邮箱和昵称字段存入queryWrapper
-        queryWrapper.eq(User::getEmail, user.getEmail());
-        queryWrapper.eq(User::getUserNickname, user.getUserNickname());
+        user.setEmail(user.getEmail());
+        user.setUserNickname(user.getUserNickname());
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
         // 对用户信息进行插入前的处理，如设置创建时间等
-        timestampHandler.preprocessForInsert(user);
+//        timestampHandler.preprocessForInsert(user);
         // 插入用户信息到数据库
         userMapper.insert(user);
         // 注册成功，返回成功信息

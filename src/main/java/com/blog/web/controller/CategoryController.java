@@ -2,13 +2,12 @@ package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.web.config.Result;
-import com.blog.web.config.TimestampHandler;
 import com.blog.web.entity.Category;
 import com.blog.web.mapper.CategoryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,9 +21,6 @@ import java.util.List;
 public class CategoryController {
 
     @Autowired
-    private TimestampHandler timestampHandler;
-
-    @Autowired
     private CategoryMapper categoryMapper;
 
     /**
@@ -35,9 +31,8 @@ public class CategoryController {
      */
     @PostMapping("/addcategory")
     public Result<Category> addCategory(@RequestBody Category category) {
-        // 在插入数据库之前，对分类对象进行时间戳处理
-        // 在插入前对分类信息进行时间戳处理
-        timestampHandler.preprocessForInsert(category);
+        category.setCreatedAt(LocalDateTime.now());
+        category.setUpdatedAt(LocalDateTime.now());
 
         // 调用Mapper接口插入分类信息到数据库
         // 调用服务层方法，保存分类信息
@@ -85,6 +80,7 @@ public class CategoryController {
         // 设置查询条件：分类ID和分类名称必须与传入的category对象相同
         wrapper.eq(Category::getCategoryId, category.getCategoryId());
         wrapper.eq(Category::getCategoryName, category.getCategoryName());
+        category.setUpdatedAt(LocalDateTime.now());
 
         // 调用categoryMapper的update方法，使用wrapper作为更新条件，更新category对象中的数据
         int rows = categoryMapper.update(category, wrapper);
@@ -106,9 +102,7 @@ public class CategoryController {
      * @return 如果分类存在，则返回分类信息；如果分类不存在，则返回错误信息。
      */
     @GetMapping("/getCategory")
-    public Result<Category> getcategory(
-            @RequestParam(value = "categoryId", required = false) Integer categoryId
-    ) {
+    public Result<Category> getcategory(@RequestParam(value = "categoryId", required = false) Integer categoryId) {
         // 根据categoryId查询分类信息
         Category category = categoryMapper.selectById(categoryId);
         // 如果分类信息存在

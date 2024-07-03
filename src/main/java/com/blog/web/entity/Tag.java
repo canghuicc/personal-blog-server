@@ -2,6 +2,7 @@ package com.blog.web.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
  * @author 苍晖
  * @since 2024-07-01
  */
+@Data
 public class Tag implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,45 +41,4 @@ public class Tag implements Serializable {
      */
     private LocalDateTime updatedAt;
 
-    public Integer getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(Integer tagId) {
-        this.tagId = tagId;
-    }
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "Tag{" +
-            "tagId = " + tagId +
-            ", tagName = " + tagName +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
-        "}";
-    }
 }
