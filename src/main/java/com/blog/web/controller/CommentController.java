@@ -159,13 +159,11 @@ public class CommentController {
         Map<Integer, List<Comment>> commentMap = comments.stream().collect(Collectors.groupingBy(Comment::getParentId));
 
         // 获取所有父评论ID为0的评论（即根评论），并将其转换为树结构表示。
-        List<Map<String, Object>> rootComments = commentMap.getOrDefault(0, new ArrayList<>())
+        // 返回构建好的根评论列表。
+        return commentMap.getOrDefault(0, new ArrayList<>())
                 .stream()
                 .map(comment -> convertToMap(comment, commentMap))
                 .collect(Collectors.toList());
-
-        // 返回构建好的根评论列表。
-        return rootComments;
     }
 
     /**
