@@ -252,6 +252,33 @@ public class UserController {
         return Result.success(map);
     }
 
+    /**
+     * 用户注销接口。
+     * <p>
+     * 通过删除Redis中对应的用户令牌，实现用户登出功能。
+     * 用户登出时，不会涉及业务逻辑处理，主要是删除令牌，中断用户的会话。
+     *
+     * @param token 用户的令牌，用于唯一标识用户会话。令牌存储在客户端，通过请求头X-Token传递。
+     * @return 返回登出结果，成功时返回"退出成功"。
+     */
+    @PostMapping("/logout")
+    public Result<String> logout(@RequestBody String token) {
+        // 定义token前缀对应的Redis键
+        String tokenKey;
+
+        // 判断令牌前缀并分配对应的Redis键
+        if (token.startsWith("user")) {
+            tokenKey = "user_token";
+        } else if (token.startsWith("AdminUser")) {
+            tokenKey = "AdminUser_token";
+        } else {
+            return Result.error("token不正确");
+        }
+        // 从Redis中删除指定的用户令牌，实现登出功能。
+        redisTemplate.delete(tokenKey);
+        // 返回登出成功的信息。
+        return Result.success("退出成功");
+    }
 
     /**
      * 用户注册接口。
