@@ -35,7 +35,7 @@ public class MediaController {
     /**
      * 通过POST请求添加媒体文件。
      *
-     * @param file 上传的媒体文件。
+     * @param file      上传的媒体文件。
      * @param mediaName 媒体文件的名称。
      * @return 添加结果，包括成功与否和添加的媒体信息。
      */

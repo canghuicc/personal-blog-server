@@ -36,7 +36,7 @@ public class Result<T> {
     /**
      * 创建一个表示成功的结果对象。
      *
-     * @param <T> 结果对象的类型。
+     * @param <T>  结果对象的类型。
      * @param data 成功时返回的数据。
      * @return 返回一个包含成功状态码、消息和数据的Result对象。
      */
@@ -49,11 +49,11 @@ public class Result<T> {
      * 创建一个表示成功的结果对象。
      *
      * @param message 成功时的提示消息。
-     * @param data 成功时返回的数据。
-     * @param <T> 返回数据的类型。
+     * @param data    成功时返回的数据。
+     * @param <T>     返回数据的类型。
      * @return 返回一个包含成功状态码、消息和数据的Result对象。
      */
-    public static <T> Result<T> success(String message,T data) {
+    public static <T> Result<T> success(String message, T data) {
         // 构造一个成功结果对象
         return new Result<>(200, message, data);
     }
@@ -62,7 +62,7 @@ public class Result<T> {
      * 生成一个表示成功的Result对象。
      *
      * @param message 成功时的提示消息。
-     * @param <T> Result对象中数据的类型。
+     * @param <T>     Result对象中数据的类型。
      * @return 返回一个包含成功状态码、消息和空数据的Result对象。
      */
     public static <T> Result<T> success(String message) {
@@ -79,42 +79,42 @@ public class Result<T> {
      * @param <T> 结果对象的类型。
      * @return 返回一个初始化为错误状态的结果对象实例。
      */
-    public static <T> Result<T> error(){
-        return new Result<>(500,"error",null);
+    public static <T> Result<T> error() {
+        return new Result<>(500, "error", null);
     }
 
     /**
      * 创建一个表示错误的结果对象。
      *
      * @param code 错误代码，用以标识具体的错误类型。
-     * @param <T> 结果对象的类型。
+     * @param <T>  结果对象的类型。
      * @return 返回一个初始化了错误代码、错误信息为"error"、数据为null的Result对象。
      */
-    public static <T> Result<T> error(Integer code){
-        return new Result<>(code,"error",null);
+    public static <T> Result<T> error(Integer code) {
+        return new Result<>(code, "error", null);
     }
 
     /**
      * 创建一个表示错误的结果对象。
      *
-     * @param code 错误代码，用于标识具体的错误类型。
+     * @param code    错误代码，用于标识具体的错误类型。
      * @param message 错误信息，用于描述错误的详细信息。
-     * @param <T> 结果对象的类型。
+     * @param <T>     结果对象的类型。
      * @return 返回一个包含错误代码和错误信息的Result对象，数据字段为null。
      */
-    public static <T> Result<T> error(Integer code,String message){
-        return new Result<>(code,message,null);
+    public static <T> Result<T> error(Integer code, String message) {
+        return new Result<>(code, message, null);
     }
 
     /**
      * 生成一个表示错误的结果对象。
      *
      * @param message 错误信息，用于描述错误的详细信息。
-     * @param <T> 结果对象的类型。
+     * @param <T>     结果对象的类型。
      * @return 返回一个包含错误信息和状态码的结果对象Result，数据部分为null。
      */
-    public static <T> Result<T> error(String message){
-        return new Result<>(500,message,null);
+    public static <T> Result<T> error(String message) {
+        return new Result<>(500, message, null);
     }
 
 }

@@ -38,7 +38,7 @@ public class CommentController {
     @PostMapping("/addcomment")
     public Result<Comment> addComment(@RequestBody Comment comment, HttpServletRequest request) {
         comment.setCreatedAt(LocalDateTime.now());
-        String clientIp=getClientIp(request);
+        String clientIp = getClientIp(request);
         comment.setCommentIp(clientIp);
         // 将评论对象插入数据库，返回影响的行数
         int rows = commentMapper.insert(comment);
