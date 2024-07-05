@@ -1,6 +1,5 @@
 package com.blog.web.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Media;
 import com.blog.web.mapper.MediaMapper;
