@@ -50,7 +50,7 @@ public class ArticleController {
 
 
     /**
-     * 通过DELETE请求删除指定文章ID的评论。
+     * 通过DELETE请求删除指定文章。
      *
      * @param articleId 要删除评论的文章ID，通过路径参数获取。
      * @return 如果删除成功，返回一个成功的Result对象；否则返回一个错误的Result对象。

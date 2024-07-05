@@ -6,6 +6,9 @@ import com.blog.web.entity.Media;
 import com.blog.web.mapper.MediaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,7 +85,6 @@ public class MediaController {
         }
     }
 
-
     /**
      * 通过媒体ID删除媒体信息。
      *
@@ -90,15 +93,22 @@ public class MediaController {
      */
     @DeleteMapping("/deletemedia/{mediaId}")
     public Result<Media> removeMedia(@PathVariable("mediaId") Integer mediaId) {
-        // 调用媒体Mapper删除指定ID的媒体记录
-        int rows = mediaMapper.deleteById(mediaId);
-
-        // 根据删除操作影响的行数判断删除是否成功
-        // 根据删除操作影响的行数判断删除是否成功，返回相应的Result对象
-        if (rows > 0) {
-            return Result.success();
+        Media media=mediaMapper.selectById(mediaId);
+        if (media != null) {
+            Path path = Paths.get(media.getMediaPath());
+            try {
+                Files.deleteIfExists(path);
+                int rows = mediaMapper.deleteById(mediaId);
+                if (rows > 0) {
+                    return Result.success("删除成功");
+                } else {
+                    return Result.error("删除失败");
+                }
+            } catch (IOException e) {
+                return Result.error("删除失败");
+            }
         } else {
-            return Result.error();
+            return Result.error("未找到媒体文件");
         }
     }
 
@@ -112,47 +122,54 @@ public class MediaController {
      * @return Result<Media> 包含所有媒体信息的结果对象。结果对象中包含了操作的成功状态及媒体信息数据。
      */
     @GetMapping("/getallmedia")
-    public Result<List<Media>> getAllMedia() {
+    public Result<List<byte[]>> getAllMedia() {
         // 查询所有媒体信息
         List<Media> mediaList = mediaMapper.selectList(null);
-        if (mediaList != null) {
-            return Result.success(mediaList);
+        if (mediaList != null && !mediaList.isEmpty()) {
+            try {
+                List<byte[]> allImages = new ArrayList<>();
+                for (Media media : mediaList) {
+                    Path path = Paths.get(media.getMediaPath());
+                    byte[] fileContent = Files.readAllBytes(path);
+                    allImages.add(fileContent);
+                }
+                return Result.success(allImages);
+            } catch (IOException e) {
+                return Result.error("读取文件失败");
+            }
         } else {
-            return Result.error();
+            return Result.error("未找到媒体文件");
         }
     }
 
     /**
-     * 根据媒体路径获取媒体信息。
-     * <p>
-     * 本方法通过GET请求访问，路径为/getmedia，可选地携带mediaPath参数。
-     * 如果提供了mediaPath参数，则尝试根据该路径查询对应的媒体信息；如果未提供，则查询所有媒体信息。
-     * </p>
+     * 通过GET请求获取媒体文件。
      *
-     * @param mediaPath 媒体文件的路径，可选参数。如果提供，将用于精确查询媒体信息。
-     * @return 返回一个Result对象，其中包含查询到的媒体信息。如果未找到匹配的媒体信息，则Result对象中的数据部分可能为空。
+     * 此方法处理来自客户端的GET请求，以获取指定路径的媒体文件（如图片）。
+     * 它首先尝试根据提供的媒体路径读取文件内容，然后将内容作为响应返回给客户端。
+     * 如果文件不存在或无法访问，方法将返回一个404状态码的响应，表示文件未找到。
+     *
+     * @param mediaPath 请求中携带的媒体文件路径参数，用于指定要获取的媒体文件的位置。
+     * @return ResponseEntity 包含媒体文件内容的响应体，如果文件不存在，则返回一个空的响应体和404状态码。
      */
     @GetMapping("/getmedia")
-    public Result<Media> getMedia(
-            @RequestParam(value = "mediaPath", required = false) String mediaPath
-    ) {
-        // 构建查询条件，针对mediaPath字段进行等值查询
-        // 构建查询条件，根据mediaPath查询唯一的媒体信息
-        LambdaQueryWrapper<Media> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Media::getMediaPath, mediaPath);
+    public ResponseEntity<byte[]> getMedia(@RequestParam(value = "mediaPath") String mediaPath) {
+        try {
+            // 根据提供的媒体路径获取文件的完整路径。
+            Path path = Paths.get(mediaPath);
+            // 读取文件的所有字节内容。
+            byte[] fileContent = Files.readAllBytes(path);
 
-        // 根据查询条件尝试获取唯一的媒体信息
-        // 根据查询条件从数据库中查询媒体信息
-        Media media1 = mediaMapper.selectOne(wrapper);
+            // 设置响应头信息，指定响应的内容类型为JPEG图片。
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_JPEG);
 
-        // 返回查询结果，包含可能存在的媒体信息
-        // 返回查询结果，如果找到，则返回媒体信息；否则，返回空或错误信息
-        if (media1 != null) {
-            return Result.success(media1);
-        } else {
-            return Result.error("未找到图片");
+            // 返回文件内容和相应的头信息。
+            return ResponseEntity.ok().headers(headers).body(fileContent);
+        } catch (IOException e) {
+            // 如果发生IO异常，说明文件不存在或无法访问，返回404状态码。
+            return ResponseEntity.notFound().build();
         }
     }
-
 
 }

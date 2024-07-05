@@ -262,7 +262,7 @@ public class UserController {
      * @return 返回登出结果，成功时返回"退出成功"。
      */
     @PostMapping("/logout")
-    public Result<String> logout(@RequestBody String token) {
+    public Result<String> logout(@RequestHeader("X-Token") String token) {
         // 定义token前缀对应的Redis键
         String tokenKey;
 
