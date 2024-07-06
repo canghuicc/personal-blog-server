@@ -29,8 +29,8 @@ public class MyRedisConfig {
 
         // 设置序列化方式
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // 如果你需要处理Java 8时间日期API，可以加上这行
-        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL); // 使用新的API激活默认类型推断
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
 
         // 使用构造器模式设置ObjectMapper到Jackson2JsonRedisSerializer
         Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
