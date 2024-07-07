@@ -2,6 +2,7 @@ package com.blog.web.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
+ * JWT Utility Service.
+ *
  * @author 苍晖
  * @since 2024/7/7 下午4:55
  */
@@ -30,6 +33,27 @@ public class JwtUtilService {
     }
 
     public boolean isExpired(String token) {
-        return Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody().getExpiration().before(new Date());
+        try {
+            Claims claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
+            return claims.getExpiration().before(new Date());
+        } catch (SignatureException e) {
+            return true;
+        }
+    }
+
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            // Any exception indicates an invalid token.
+            return false;
+        }
     }
 }
