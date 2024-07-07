@@ -102,12 +102,8 @@ public class TagController {
      */
     @GetMapping("/gettag")
     public Result<Tag> gettag(@RequestParam(value = "tagId", required = false) Integer tagId) {
-        // 创建LambdaQueryWrapper用于查询条件构建
-        LambdaQueryWrapper<Tag> wrapper = new LambdaQueryWrapper<>();
-        // 设置查询条件：根据tagId等于传入的参数进行查询
-        wrapper.eq(Tag::getTagId, tagId);
         // 根据构建的查询条件尝试获取唯一的标签信息
-        Tag tag1 = tagMapper.selectOne(wrapper);
+        Tag tag1 = tagMapper.selectOne(new LambdaQueryWrapper<Tag>().eq(Tag::getTagId, tagId));
         // 判断查询结果是否存在
         if (tag1 != null) {
             // 如果查询结果存在，则返回成功的Result，包含查询到的标签信息
@@ -126,17 +122,13 @@ public class TagController {
     @GetMapping("/getalltag")
     public Result<List<Tag>> getAllTag() {
         // 调用tagMapper的selectList方法，不传入任何条件，查询所有标签
-        // 调用tagMapper的selectList方法获取所有标签信息
         List<Tag> tags = tagMapper.selectList(null);
 
         // 判断查询结果是否存在
-        // 判断查询结果是否存在
         if (tags != null) {
-            // 如果查询到标签，返回成功结果，并包含查询到的标签列表
             // 如果查询结果存在，则返回成功的Result，包含查询到的标签信息列表
             return Result.success(tags);
         } else {
-            // 如果未查询到标签，返回错误结果，包含“查询失败”信息
             // 如果查询结果不存在，则返回错误的Result，包含"查询失败！"信息
             return Result.error("查询失败！");
         }

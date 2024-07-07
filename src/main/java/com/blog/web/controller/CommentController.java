@@ -81,14 +81,11 @@ public class CommentController {
     @GetMapping("/getcomment")
     public Result<List<Map<String, Object>>> getComment(
             @RequestParam(value = "articleId", required = false) Integer articleId) {
-        // 初始化查询条件
-        // 创建查询条件包装对象
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         // 如果提供了文章ID，则根据文章ID过滤评论
         if (articleId != null) {
             wrapper.eq(Comment::getArticleId, articleId);
         }
-        // 查询符合條件的评论列表
         // 根据查询条件获取评论列表
         List<Comment> commentList = commentMapper.selectList(wrapper);
 

@@ -45,9 +45,7 @@ public class UserController {
      */
     @PostMapping("/adduser")
     public Result<User> saveUser(@RequestBody User user) {
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, user.getUsername());
-        User user1 = userMapper.selectOne(wrapper);
+        User user1 = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
         if (user1 != null) {
             // 如果存在相同的用户名，则返回错误信息
             return Result.error("用户名已存在");
@@ -291,9 +289,7 @@ public class UserController {
     public Result<User> register(@RequestBody User user) {
         // 检查用户名是否已存在
         // 查询数据库中是否存在相同的用户名
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, user.getUsername());
-        User user1 = userMapper.selectOne(wrapper);
+        User user1 = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
         if (user1 != null) {
             // 如果存在相同的用户名，则返回错误信息
             return Result.error("用户名已存在");
