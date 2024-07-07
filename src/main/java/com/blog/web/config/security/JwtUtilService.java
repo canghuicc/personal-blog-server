@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
@@ -99,23 +100,58 @@ public class JwtUtilService {
         }
     }
 
+    /**
+     * 刷新JWT令牌。
+     * <p>
+     * 如果当前令牌接近过期，生成新的JWT令牌。
+     *
+     * @param token   当前的JWT令牌。
+     * @param minutes 令牌剩余有效时间的最小分钟数，低于此值则刷新。
+     * @return 新的JWT令牌或原始令牌，取决于是否需要刷新。
+     */
+    public String refreshToken(String token, int minutes) {
+        Claims claims = parseToken(token);
+        if (claims != null && getMinutesUntilExpiration(claims) <= minutes) {
+            return createToken(claims.getSubject());
+        }
+        return token;
+    }
+
+    /**
+     * 获取令牌距离过期的分钟数。
+     *
+     * @param claims 解析后的令牌声明。
+     * @return 距离过期的时间（分钟）。
+     */
+    private int getMinutesUntilExpiration(Claims claims) {
+        Date expiration = claims.getExpiration();
+        long timeLeftMillis = expiration.getTime() - System.currentTimeMillis();
+        return (int) (timeLeftMillis / (1000 * 60));
+    }
 
     /**
      * 验证JWT令牌的有效性。
-     * 使用预设的密钥对令牌进行解析，如果解析成功，则令牌有效；反之，令牌无效。
+     * 使用预设的密钥对令牌进行解析，如果解析成功且用户信息匹配，则令牌有效。
      *
      * @param token 待验证的JWT令牌字符串。
+     * @param userDetails 用户详细信息，用于比对。
      * @return 如果令牌有效，则返回true；否则返回false。
      */
-    public boolean validateToken(String token) {
-        try {
-            // 使用JWT的解析器，并设置签名密钥，尝试解析令牌。
-            Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            // 解析失败，捕获到异常，说明令牌无效。
-            return false;
-        }
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsernameFromToken(token);
+        return (username.equals(userDetails.getUsername()) &&
+                !isExpired(token));
     }
+
+    /**
+     * 从JWT令牌中提取用户名。
+     *
+     * @param token 待解析的JWT令牌。
+     * @return 如果解析成功，返回用户名；如果解析失败，返回null。
+     */
+    public String extractUsernameFromToken(String token) {
+        return parseToken(token).getSubject();
+    }
+
 
 }

@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -32,21 +33,25 @@ public class MySecurityConfig {
     @Resource
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
+                .authenticationEntryPoint((AuthenticationEntryPoint) unauthorizedHandler)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/user/login", "/api/user/admin/login", "/api/user/register").anonymous()
-                .requestMatchers("/api/user/adduser","/api/user/getalluser", "/api/tag/deletetag/**","/api/media/deletemedia/**", "/api/comment/getallcomment/**","/api/comment/updatecomment/**", "/api/category/deletecategory/**","/api/article/deletecomment/**").hasRole("ROLE_ADMIN")
-                .anyRequest().authenticated();
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        http.logout().logoutUrl("/api/user/logout").logoutSuccessHandler(logoutSuccessHandler);
-        http.cors();
+                .requestMatchers("/api/user/adduser", "/api/user/getalluser", "/api/tag/deletetag/**", "/api/media/deletemedia/**", "/api/comment/getallcomment/**", "/api/comment/updatecomment/**", "/api/category/deletecategory/**", "/api/article/deletecomment/**").hasRole("ROLE_ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout().logoutUrl("/api/user/logout")
+                .logoutSuccessHandler(logoutSuccessHandler)
+                .permitAll()
+                .and()
+                .cors();
         return http.build();
     }
 
