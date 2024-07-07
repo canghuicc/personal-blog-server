@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
- * JWT Utility Service.
- *
  * @author 苍晖
  * @since 2024/7/7 下午4:55
  */
@@ -133,7 +131,7 @@ public class JwtUtilService {
      * 验证JWT令牌的有效性。
      * 使用预设的密钥对令牌进行解析，如果解析成功且用户信息匹配，则令牌有效。
      *
-     * @param token 待验证的JWT令牌字符串。
+     * @param token       待验证的JWT令牌字符串。
      * @param userDetails 用户详细信息，用于比对。
      * @return 如果令牌有效，则返回true；否则返回false。
      */
@@ -152,6 +150,5 @@ public class JwtUtilService {
     public String extractUsernameFromToken(String token) {
         return parseToken(token).getSubject();
     }
-
 
 }
