@@ -55,8 +55,17 @@ public class MyAuthenticationProvider implements AuthenticationProvider {
     }
 
 
+    /**
+     * 判断当前Security框架的认证机制是否支持指定的认证类。
+     * 本方法特定于判断是否支持UsernamePasswordAuthenticationToken类型的认证。
+     *
+     * @param authentication 需要验证其是否受支持的认证类。
+     * @return 如果指定的认证类是UsernamePasswordAuthenticationToken的实例或其子类，则返回true；否则返回false。
+     */
     @Override
     public boolean supports(Class<?> authentication) {
+        // 判断传入的认证类是否可以被UsernamePasswordAuthenticationToken类所派生
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
+
 }

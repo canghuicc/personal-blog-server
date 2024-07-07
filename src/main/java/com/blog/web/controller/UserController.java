@@ -194,9 +194,7 @@ public class UserController {
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody User user) {
         // 根据用户名查询数据库中的用户记录
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, user.getUsername());
-        User user1 = userMapper.selectOne(wrapper);
+        User user1 = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
 
         Map<String, Object> map;
         // 验证用户凭据是否正确

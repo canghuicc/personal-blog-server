@@ -45,9 +45,9 @@ public class MyUserDetailsService implements UserDetailsService {
         // 根据用户角色设置权限列表
         List<GrantedAuthority> authorities;
         if (user.getUserRole() == 1){
-            authorities=Collections.singletonList(new SimpleGrantedAuthority("admin"));
+            authorities=Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }else {
-            authorities=Collections.singletonList(new SimpleGrantedAuthority("user"));
+            authorities=Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
         }
         // 创建并返回UserDetails对象，包含用户名、密码和权限信息
         return new org.springframework.security.core.userdetails.User(username, user.getPassword(), authorities);

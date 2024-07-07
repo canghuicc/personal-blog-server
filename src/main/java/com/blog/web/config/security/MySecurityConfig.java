@@ -30,7 +30,7 @@ public class MySecurityConfig {
     private AuthenticationConfiguration authenticationConfiguration;
 
     @Resource
-    JwtAuthenticationFilter jwtAuthenticationFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
@@ -42,7 +42,7 @@ public class MySecurityConfig {
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/user/login", "/api/user/admin/login", "/api/user/register").anonymous()
-                .requestMatchers("/api/user/adduser","/api/user/getalluser", "/api/tag/deletetag/**","/api/media/deletemedia/**", "/api/comment/getallcomment/**","/api/comment/updatecomment/**", "/api/category/deletecategory/**","/api/article/deletecomment/**").hasRole("admin")
+                .requestMatchers("/api/user/adduser","/api/user/getalluser", "/api/tag/deletetag/**","/api/media/deletemedia/**", "/api/comment/getallcomment/**","/api/comment/updatecomment/**", "/api/category/deletecategory/**","/api/article/deletecomment/**").hasRole("ROLE_ADMIN")
                 .anyRequest().authenticated();
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.logout().logoutUrl("/api/user/logout").logoutSuccessHandler(logoutSuccessHandler);
