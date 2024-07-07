@@ -17,7 +17,6 @@ import java.io.IOException;
 @Configuration
 public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
     @Override
-    @Bean
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         response.sendRedirect("/login");
     }
