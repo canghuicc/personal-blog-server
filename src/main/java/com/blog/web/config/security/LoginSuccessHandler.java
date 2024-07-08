@@ -7,8 +7,8 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,21 +16,25 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * @author 苍晖
- * @since 2024/7/7 下午10:40
+ * @since 2024/7/8 下午3:28
  */
 @Component
-public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
+public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
+    @Autowired
+    private JwtUtilService jwtUtilService;
     @Autowired
     private HttpServletResponse httpServletResponse;
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        httpServletResponse.setContentType("application/json;charset=UTF-8");
-        httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        httpServletResponse.setContentType("application/json;charset=utf-8");
         ServletOutputStream outputStream = httpServletResponse.getOutputStream();
 
-        Result result = Result.error("权限不足");
+        String jwt = jwtUtilService.createToken(authentication.getName());
+        httpServletResponse.setHeader("X-Token", jwt);
+
+        Result result = Result.success("登录成功");
         outputStream.write(JsonEscapeUtil.jsonEscapeString(result.toString()).getBytes(StandardCharsets.UTF_8));
         outputStream.flush();
         outputStream.close();

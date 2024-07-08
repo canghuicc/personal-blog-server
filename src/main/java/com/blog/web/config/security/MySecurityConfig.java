@@ -23,7 +23,13 @@ import org.springframework.web.filter.CorsFilter;
 public class MySecurityConfig {
 
     @Autowired
-    private AccessDeniedHandlerImpl unauthorizedHandler;
+    private LoginSuccessHandler loginSuccessHandler;
+
+    @Autowired
+    private LoginFailureHandler loginFailureHandler;
+
+    @Autowired
+    private AccessDeniedHandlerImpl accessDeniedHandler;
 
     @Autowired
     private LogoutSuccessHandlerImpl logoutSuccessHandler;
@@ -52,10 +58,16 @@ public class MySecurityConfig {
         http.csrf().disable()
                 // 配置CORS跨域请求处理
                 .cors().and()
+                .formLogin()
+                // 指定登录成功时的处理程序
+                .successHandler(loginSuccessHandler)
+                // 指定登录失败时的处理程序
+                .failureHandler(loginFailureHandler)
+                .and()
                 // 配置异常处理
                 .exceptionHandling()
                 // 指定访问被拒绝时的处理程序
-                .accessDeniedHandler(unauthorizedHandler)
+                .accessDeniedHandler(accessDeniedHandler)
                 .and()
                 // 配置会话管理
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
