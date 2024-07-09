@@ -2,13 +2,17 @@ package com.blog.web.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecureDigestAlgorithm;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +29,15 @@ public class JwtUtilService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    private SecretKey KEY;
+
+    private final static SecureDigestAlgorithm<SecretKey, SecretKey> ALGORITHM = Jwts.SIG.HS256;
+
+    @PostConstruct
+    public void init() {
+        this.KEY = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     /**
      * 创建一个JWT令牌。
@@ -44,10 +57,14 @@ public class JwtUtilService {
         // 使用JWT库的builder模式构建令牌
         // 设置主题（用户名）、发行时间、过期时间，并使用预定义的私钥对令牌进行签名
         String token = Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(instance.getTime())
-                .signWith(io.jsonwebtoken.SignatureAlgorithm.HS256, secret)
+                .header()
+                .add("typ", "JWT")
+                .add("alg", "HS256")
+                .and()
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(instance.getTime())
+                .signWith(KEY, ALGORITHM)
                 .compact();
 
         redisTemplate.opsForValue().set("token:" + token, username, 30, TimeUnit.MINUTES);
@@ -64,11 +81,11 @@ public class JwtUtilService {
         try {
             // 使用JJWT库创建解析器构建器，设置签名密钥为预定义的secret，然后构建解析器。
             // 使用解析器解析JWT令牌并获取Claims部分。
-            return Jwts.parserBuilder()
-                    .setSigningKey(secret)
+            return Jwts.parser()
+                    .verifyWith(KEY)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (Exception e) {
             // 解析失败时，捕获异常并返回null。
             return null;
@@ -88,7 +105,7 @@ public class JwtUtilService {
     public boolean isExpired(String token) {
         try {
             // 解析JWT令牌，获取其中的声明（Claims）
-            Claims claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
+            Claims claims = Jwts.parser().verifyWith(KEY).build().parseSignedClaims(token).getPayload();
 
             // 检查令牌的过期时间是否早于当前时间
             return claims.getExpiration().before(new Date());

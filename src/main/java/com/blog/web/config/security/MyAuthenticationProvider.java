@@ -17,10 +17,10 @@ import org.springframework.stereotype.Component;
 public class MyAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
-    MyUserDetailsService myUserDetailsService;
+    private MyUserDetailsService myUserDetailsService;
 
     @Autowired
-    MyPasswordEncoder myPasswordEncoder;
+    private MyPasswordEncoder myPasswordEncoder;
 
     /**
      * 尝试验证给定的认证信息是否有效。

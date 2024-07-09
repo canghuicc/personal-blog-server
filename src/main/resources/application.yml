@@ -34,4 +34,4 @@ logging:
     com.blog: debug
 
 jwt:
-  secret: f0c8e4b20a9d4c079d59a7c1d3f2
+  secret: f0c8e4b20a9d4c079d59a7c1d3f20356

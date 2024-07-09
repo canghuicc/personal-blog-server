@@ -3,11 +3,15 @@ package com.blog.web.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.blog.web.config.Result;
+import com.blog.web.config.security.JwtUtilService;
+import com.blog.web.config.security.MyAuthenticationProvider;
 import com.blog.web.entity.User;
 import com.blog.web.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +40,12 @@ public class UserController {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private MyAuthenticationProvider myAuthenticationProvider;
+
+    @Autowired
+    private JwtUtilService jwtUtilService;
 
     /**
      * 通过POST请求添加用户信息到数据库。
@@ -190,28 +200,48 @@ public class UserController {
      * @param user 包含登录凭据的用户对象，用户名和密码。
      * @return 如果凭据有效，返回包含登录令牌的映射；否则返回错误消息。
      */
+//    @PostMapping("/login")
+//    public Result<Map<String, Object>> login(@RequestBody User user) {
+//        // 根据用户名查询数据库中的用户记录
+//        User user1 = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
+//
+//        Map<String, Object> map;
+//        // 验证用户凭据是否正确
+//        if (user1 != null && passwordEncoder.matches(user.getPassword(), user1.getPassword())) {
+//            // 生成唯一的登录令牌
+//            // 生成token
+//            String token = "user:" + UUID.randomUUID();
+//            map = new HashMap<>();
+//            map.put("token", token);
+//
+//            // 从返回的用户对象中移除密码信息，以增强安全性
+//            user1.setPassword(null);
+//            redisTemplate.opsForValue().set("user_token:", token, 30, TimeUnit.MINUTES);
+//        } else {
+//            // 如果凭据无效，返回错误消息
+//            return Result.error("用户名或密码错误");
+//        }
+//        // 返回包含登录令牌的映射
+//        return Result.success(map);
+//    }
+
+
     @PostMapping("/login")
-    public Result<Map<String, Object>> login(@RequestBody User user) {
-        // 根据用户名查询数据库中的用户记录
-        User user1 = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
+    public Result<Map<String, String>> login(@RequestBody User user) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+        Authentication authenticate = myAuthenticationProvider.authenticate(authenticationToken);
 
-        Map<String, Object> map;
-        // 验证用户凭据是否正确
-        if (user1 != null && passwordEncoder.matches(user.getPassword(), user1.getPassword())) {
-            // 生成唯一的登录令牌
-            // 生成token
-            String token = "user:" + UUID.randomUUID();
-            map = new HashMap<>();
-            map.put("token", token);
-
-            // 从返回的用户对象中移除密码信息，以增强安全性
-            user1.setPassword(null);
-            redisTemplate.opsForValue().set("user_token:", token, 30, TimeUnit.MINUTES);
-        } else {
-            // 如果凭据无效，返回错误消息
+        if (authenticate == null){
             return Result.error("用户名或密码错误");
         }
-        // 返回包含登录令牌的映射
+
+        UserDetails loginUser=(UserDetails)authenticate.getPrincipal();
+        String username=loginUser.getUsername();
+        String token=jwtUtilService.createToken(username);
+        HashMap<String, String> map = new HashMap<>();
+        map.put("token",token);
+        redisTemplate.opsForValue().set("token:"+username,token,30,TimeUnit.MINUTES);
+
         return Result.success(map);
     }
 

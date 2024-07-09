@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 从请求头中提取令牌，刷新令牌，并在认证成功后设置安全上下文。
      * 如果用户已认证，则直接通过过滤器链。
      *
-     * @param request  HTTP请求，用于获取请求头中的令牌。
-     * @param response HTTP响应，当前方法中不直接使用，但必须作为参数传递给过滤器链。
+     * @param request     HTTP请求，用于获取请求头中的令牌。
+     * @param response    HTTP响应，当前方法中不直接使用，但必须作为参数传递给过滤器链。
      * @param filterChain 过滤器链，用于继续处理请求。
      * @throws ServletException 如果过滤器处理过程中出现Servlet相关异常。
      * @throws IOException      如果过滤器处理过程中出现IO相关异常。
@@ -41,13 +41,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 从请求头中获取令牌
-        final String tokenHeader = request.getHeader("X-Token");
+        final String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
-        // 如果令牌存在且不为空，则进行处理
-        if (tokenHeader != null && !tokenHeader.isEmpty()) {
-            token = tokenHeader;
+        // 如果Authorization头存在且以"Bearer "开始，则进行处理
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7); // 去掉"Bearer "前缀
             // 从令牌中提取用户名
             username = jwtUtilService.extractUsernameFromToken(token);
             // 刷新令牌
@@ -69,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // 继续处理请求
+        // 继续执行过滤器链
         filterChain.doFilter(request, response);
     }
 
