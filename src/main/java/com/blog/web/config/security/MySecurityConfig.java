@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,16 +25,7 @@ import org.springframework.web.filter.CorsFilter;
 public class MySecurityConfig {
 
     @Autowired
-    private LoginSuccessHandler loginSuccessHandler;
-
-    @Autowired
-    private LoginFailureHandler loginFailureHandler;
-
-    @Autowired
     private AccessDeniedHandlerImpl accessDeniedHandler;
-
-    @Autowired
-    private LogoutSuccessHandlerImpl logoutSuccessHandler;
 
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
@@ -58,12 +51,6 @@ public class MySecurityConfig {
         http.csrf().disable()
                 // 配置CORS跨域请求处理
                 .cors().and()
-                .formLogin()
-                // 指定登录成功时的处理程序
-                .successHandler(loginSuccessHandler)
-                // 指定登录失败时的处理程序
-                .failureHandler(loginFailureHandler)
-                .and()
                 // 配置异常处理
                 .exceptionHandling()
                 // 指定访问被拒绝时的处理程序
@@ -85,8 +72,6 @@ public class MySecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // 配置注销功能
                 .logout().logoutUrl("/api/user/logout")
-                // 指定注销成功后的处理程序
-                .logoutSuccessHandler(logoutSuccessHandler)
                 .permitAll();
         // 返回构建后的SecurityFilterChain对象
         return http.build();
@@ -103,10 +88,15 @@ public class MySecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // 允许所有来源，您可以根据需要进行限制
+        config.addAllowedOriginPattern("*"); // 允许所有来源
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

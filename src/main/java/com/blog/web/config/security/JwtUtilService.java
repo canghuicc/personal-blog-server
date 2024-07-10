@@ -1,5 +1,8 @@
 package com.blog.web.config.security;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.web.entity.User;
+import com.blog.web.mapper.UserMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -9,7 +12,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -26,6 +28,9 @@ public class JwtUtilService {
 
     @Value("${jwt.secret}")
     private String secret;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -67,7 +72,7 @@ public class JwtUtilService {
                 .signWith(KEY, ALGORITHM)
                 .compact();
 
-        redisTemplate.opsForValue().set("token:" + token, username, 30, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set("token:" + username, token, 30, TimeUnit.MINUTES);
         return token;
     }
 
@@ -145,18 +150,25 @@ public class JwtUtilService {
     }
 
     /**
-     * 验证JWT令牌的有效性。
-     * 使用预设的密钥对令牌进行解析，如果解析成功且用户信息匹配，则令牌有效。
+     * 验证令牌（token）的有效性。
+     * 通过解析令牌获取用户名，并验证数据库中是否存在对应的用户。
      *
-     * @param token       待验证的JWT令牌字符串。
-     * @param userDetails 用户详细信息，用于比对。
-     * @return 如果令牌有效，则返回true；否则返回false。
+     * @param token 待验证的令牌字符串。
+     * @return 如果令牌有效（即对应一个存在的用户名），返回true；否则返回false。
      */
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token) {
+        // 从令牌中提取用户名
         final String username = extractUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) &&
-                !isExpired(token));
+        if (username != null) {
+            // 根据用户名查询数据库中的用户信息
+            User user=userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+            // 如果查询结果不为空，则表示用户名存在，令牌有效
+            return user != null;
+        }
+        // 如果用户名为空，直接返回无效
+        return false;
     }
+
 
     /**
      * 从JWT令牌中提取用户名。
