@@ -1,0 +1,10 @@
+## 个人博客系统后端
+### 技术栈
+* spingboot3.0.13
+* Mybatis-plus3.5.4
+* redis
+* security6
+* jwt0.12.3
+### 数据库
+* Mysql
+> 代码所有查询使用mybatis-plus提供的接口，service无代码，具体用法可前往[Mybatis-plus官网](https://baomidou.com/introduce/)进行查询。
