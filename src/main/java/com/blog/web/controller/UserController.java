@@ -2,11 +2,13 @@ package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.web.config.Result;
 import com.blog.web.config.security.JwtUtilService;
 import com.blog.web.config.security.MyAuthenticationProvider;
 import com.blog.web.entity.User;
 import com.blog.web.mapper.UserMapper;
+import com.blog.web.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,6 +35,9 @@ public class UserController {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private IUserService iUserService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -175,20 +180,27 @@ public class UserController {
     }
 
     /**
-     * 获取所有用户的信息。
-     * <p>
-     * 本接口不需要接收任何参数，调用成功后，返回所有用户的信息。
+     * 获取所有用户信息的接口。
+     * 通过分页查询用户数据，返回当前页码和每页数量指定的用户列表。
      *
-     * @return Result<User> 返回一个结果对象，其中包含所有用户的信息。如果操作失败，结果对象中会包含相应的错误信息。
+     * @param pageNum  当前页码，用于分页查询。
+     * @param pageSize 每页显示的用户数量，用于分页查询。
+     * @return 返回一个包含总记录数和用户列表的结果对象。
      */
     @GetMapping("/getalluser")
-    public Result<List<User>> getAllUser() {
-        List<User> users = userMapper.selectList(null);
-        if (users != null) {
-            return Result.success(users);
-        } else {
-            return Result.error("获取失败");
-        }
+    public Result<Map<String,Object>> getAllUser(@RequestParam(value = "pageNum") Integer pageNum, @RequestParam(value = "pageSize") Integer pageSize) {
+        // 初始化分页对象，用于后续的分页查询
+        Page<User> page = new Page<>(pageNum, pageSize);
+        // 调用UserService的page方法，进行分页查询
+        iUserService.page(page);
+        // 创建一个HashMap，用于存放查询结果和总记录数
+        HashMap<String, Object> map = new HashMap<>();
+        // 将查询结果的总记录数放入map中
+        map.put("total", page.getTotal());
+        // 将查询到的用户记录列表放入map中
+        map.put("rows", page.getRecords());
+        // 返回包含查询结果和总记录数的Result对象
+        return Result.success(map);
     }
 
     /**

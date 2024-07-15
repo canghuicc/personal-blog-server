@@ -1,9 +1,12 @@
 package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Comment;
+import com.blog.web.entity.Tag;
 import com.blog.web.mapper.CommentMapper;
+import com.blog.web.service.ICommentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,9 @@ public class CommentController {
 
     @Autowired
     private CommentMapper commentMapper;
+
+    @Autowired
+    private ICommentService iCommentService;
 
     /**
      * 通过POST请求添加评论。
@@ -103,22 +109,29 @@ public class CommentController {
     }
 
     /**
-     * 通过GET请求获取所有评论
+     * 获取所有评论信息的接口。
      *
-     * @return Result<Comment> - 返回包含所有评论的Result对象，如果查询失败，则返回错误信息
+     * 通过页面编号和页面大小来分页获取评论数据。
+     * 返回包含评论总数和评论列表的结果对象。
+     *
+     * @param pageNum 当前页码，用于分页查询
+     * @param pageSize 每页的评论数量，用于分页查询
+     * @return 包含评论总数和评论列表的结果对象
      */
     @GetMapping("/getallcomment")
-    public Result<List<Comment>> getAllComment() {
-        // 调用commentMapper的selectList方法查询所有评论
-        List<Comment> commentList = commentMapper.selectList(null);
-
-        // 判断查询结果是否为空，如果不为空，则返回查询成功的结果，包含评论列表
-        if (commentList != null) {
-            return Result.success(commentList);
-        } else {
-            // 如果查询结果为空，则返回查询失败的错误信息
-            return Result.error("查询失败");
-        }
+    public Result<Map<String, Object>> getAllComment(@RequestParam(value = "pageNum") Integer pageNum, @RequestParam(value = "pageSize") Integer pageSize) {
+        // 创建分页对象，用于后续的分页查询
+        Page<Comment> page = new Page<>(pageNum, pageSize);
+        // 调用评论服务的分页查询方法
+        iCommentService.page(page);
+        // 创建一个Map对象，用于存放查询结果
+        Map<String, Object> map = new HashMap<>();
+        // 将评论总数放入Map中
+        map.put("total", page.getTotal());
+        // 将评论列表放入Map中
+        map.put("rows", page.getRecords());
+        // 返回包含查询结果的success结果对象
+        return Result.success(map);
     }
 
     /**

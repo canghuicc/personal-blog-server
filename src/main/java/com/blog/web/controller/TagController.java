@@ -95,24 +95,26 @@ public class TagController {
 
     /**
      * 根据标签ID获取标签信息。
+     * <p>
+     * 通过标签ID查询数据库中的标签信息。如果找到对应标签，则返回标签详情；
+     * 如果未找到标签，则返回查询失败的错误信息。
      *
-     * @param tagId 标签ID，可选参数。
-     * @return 如果找到对应的标签，则返回标签信息；否则返回错误信息"查询失败！"。
-     * @GetMapping("/gettag") 注解用于映射GET请求到当前方法，用于获取标签信息。
+     * @param tagId 标签ID，可选参数。如果提供，将用于查询特定ID的标签。
+     * @return 如果查询成功，返回包含标签信息的Result对象；如果查询失败，返回一个包含错误消息的Result对象。
      */
     @GetMapping("/gettag")
     public Result<Tag> gettag(@RequestParam(value = "tagId", required = false) Integer tagId) {
-        // 根据构建的查询条件尝试获取唯一的标签信息
+        // 使用LambdaQueryWrapper查询指定tagId的标签信息
         Tag tag1 = tagMapper.selectOne(new LambdaQueryWrapper<Tag>().eq(Tag::getTagId, tagId));
-        // 判断查询结果是否存在
         if (tag1 != null) {
-            // 如果查询结果存在，则返回成功的Result，包含查询到的标签信息
+            // 如果查询结果不为空，则返回查询成功的Result对象，包含标签信息
             return Result.success(tag1);
         } else {
-            // 如果查询结果不存在，则返回错误的Result，包含"查询失败！"信息
+            // 如果查询结果为空，则返回查询失败的Result对象，包含错误消息
             return Result.error("查询失败！");
         }
     }
+
 
     /**
      * 通过GET请求获取所有标签信息。

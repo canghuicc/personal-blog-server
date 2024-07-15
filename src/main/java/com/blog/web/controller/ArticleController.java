@@ -1,14 +1,19 @@
 package com.blog.web.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Article;
+import com.blog.web.entity.Comment;
 import com.blog.web.mapper.ArticleMapper;
+import com.blog.web.service.IArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章表 前端控制器
@@ -22,6 +27,9 @@ public class ArticleController {
 
     @Autowired
     private ArticleMapper articleMapper;
+
+    @Autowired
+    private IArticleService iArticleService;
 
     /**
      * 保存文章信息
@@ -68,26 +76,27 @@ public class ArticleController {
         }
     }
 
-
     /**
-     * 通过GET请求获取所有文章。
-     * <p>
-     * 此方法不接受任何参数，通过调用articleMapper的selectList方法来查询数据库中的所有文章。
-     * 查询结果将包装在Result对象中返回，Result对象用于表示操作的结果状态和数据。
+     * 根据页码和每页大小获取所有文章列表。
      *
-     * @return Result<Article> - 包含所有文章的Result对象。如果查询成功，Result的状态为成功，数据为所有文章的列表；
-     * 如果查询失败，Result的状态为失败，数据可能为空或包含错误信息。
+     * @param pageNum 当前页码
+     * @param pageSize 每页显示的文章数量
+     * @return 包含文章总数和文章列表的结果对象
      */
     @GetMapping("/getallarticle")
-    public Result<List<Article>> getAllArticle() {
-        // 查询所有文章
-        List<Article> articles = articleMapper.selectList(null);
-        // 返回包含所有文章的Result对象
-        if (articles != null) {
-            return Result.success(articles);
-        } else {
-            return Result.error("查询失败！");
-        }
+    public Result<Map<String, Object>> getAllArticle(@RequestParam(value = "pageNum") Integer pageNum, @RequestParam(value = "pageSize") Integer pageSize) {
+        // 创建分页对象，用于后续的分页查询
+        Page<Article> page = new Page<>(pageNum, pageSize);
+        // 调用文章服务的分页查询方法
+        iArticleService.page(page);
+        // 创建一个Map用于存放查询结果的总条数和文章列表
+        Map<String, Object> map = new HashMap<>();
+        // 将查询结果的总条数放入Map中
+        map.put("total", page.getTotal());
+        // 将查询到的文章列表放入Map中
+        map.put("rows", page.getRecords());
+        // 返回包含文章总数和文章列表的结果对象
+        return Result.success(map);
     }
 
     /**
