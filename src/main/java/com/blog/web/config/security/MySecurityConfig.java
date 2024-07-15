@@ -62,9 +62,24 @@ public class MySecurityConfig {
                 // 配置请求授权
                 .authorizeHttpRequests()
                 // 指定哪些请求路径允许匿名访问
-                .requestMatchers("/api/user/login", "/api/user/register").anonymous()
+                .requestMatchers("/api/user/login",
+                                "/api/user/register",
+                                "/api/article/getallarticle",
+                                "/api/article/getarticle",
+                                "/api/category/getallcategory",
+                                "/api/category/getCategory",
+                                "/api/comment/getcomment",
+                                "/api/tag/getalltag",
+                                "/api/tag/gettag").anonymous()
                 // 指定哪些请求路径需要ADMIN角色
-                .requestMatchers("/api/user/adduser", "/api/user/getalluser", "/api/tag/deletetag/**", "/api/media/deletemedia/**", "/api/comment/getallcomment/**", "/api/comment/updatecomment/**", "/api/category/deletecategory/**", "/api/article/deletecomment/**").hasRole("ADMIN")
+                .requestMatchers("/api/user/adduser",
+                                "/api/user/getalluser",
+                                "/api/tag/deletetag/**",
+                                "/api/media/deletemedia/**",
+                                "/api/comment/getallcomment/**",
+                                "/api/comment/updatecomment/**",
+                                "/api/category/deletecategory/**",
+                                "/api/article/deletecomment/**").hasRole("ADMIN")
                 // 其他所有请求都需要认证
                 .anyRequest().authenticated()
                 .and()
