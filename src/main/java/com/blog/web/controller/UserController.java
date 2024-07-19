@@ -14,13 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户表 前端控制器
@@ -187,7 +190,7 @@ public class UserController {
      * @return 返回一个包含总记录数和用户列表的结果对象。
      */
     @GetMapping("/getalluser")
-    public Result<Map<String,Object>> getAllUser(@RequestParam(value = "pageNum") Integer pageNum, @RequestParam(value = "pageSize") Integer pageSize) {
+    public Result<Map<String, Object>> getAllUser(@RequestParam(value = "pageNum") Integer pageNum, @RequestParam(value = "pageSize") Integer pageSize) {
         // 初始化分页对象，用于后续的分页查询
         Page<User> page = new Page<>(pageNum, pageSize);
         // 调用UserService的page方法，进行分页查询
@@ -210,7 +213,7 @@ public class UserController {
      * @return 如果登录成功，返回包含生成的Token的Map；如果登录失败，返回错误信息。
      */
     @PostMapping("/login")
-    public Result<Map<String, String>> login(@RequestBody User user) {
+    public Result<Map<String, Object>> login(@RequestBody User user) {
         // 创建认证令牌，包含用户名和密码。
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
 
@@ -224,18 +227,25 @@ public class UserController {
 
         // 获取认证成功的用户详情。
         UserDetails loginUser = (UserDetails) authenticate.getPrincipal();
+
         // 从用户详情中提取用户名。
         String username = loginUser.getUsername();
+
+        // 获取用户的所有权限。
+        Collection<? extends GrantedAuthority> authorities = loginUser.getAuthorities();
+
         // 生成基于用户名的JWT Token。
         String token = jwtUtilService.createToken(username);
 
-        // 创建包含Token的Map，准备返回给客户端。
-        HashMap<String, String> map = new HashMap<>();
+        // 创建包含Token和权限信息的Map，准备返回给客户端。
+        HashMap<String, Object> map = new HashMap<>();
         map.put("token", token);
+        map.put("role", authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
-        // 返回成功登录的结果，包含生成的Token。
+        // 返回成功登录的结果，包含生成的Token和权限信息。
         return Result.success(map);
     }
+
 
     /**
      * 处理用户登出请求。
