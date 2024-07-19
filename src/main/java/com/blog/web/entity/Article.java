@@ -52,6 +52,11 @@ public class Article implements Serializable {
     private Integer tagId;
 
     /**
+     * 背景图片路径
+     */
+    private String backgroundPath;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

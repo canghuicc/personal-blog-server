@@ -73,7 +73,7 @@ public class MediaController {
             // 判断插入操作影响的行数，如果大于0则表示插入成功
             if (rows > 0) {
                 // 添加成功，返回成功结果和添加的媒体信息。
-                return Result.success("添加成功", media);
+                return Result.success("path:+path");
             } else {
                 // 添加失败，返回错误结果。
                 return Result.error("添加失败");

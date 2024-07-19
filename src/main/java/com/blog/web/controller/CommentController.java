@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Comment;
-import com.blog.web.entity.Tag;
 import com.blog.web.mapper.CommentMapper;
 import com.blog.web.service.ICommentService;
 import jakarta.servlet.http.HttpServletRequest;

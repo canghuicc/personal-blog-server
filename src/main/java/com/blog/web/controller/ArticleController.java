@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.web.config.Result;
 import com.blog.web.entity.Article;
-import com.blog.web.entity.Comment;
 import com.blog.web.mapper.ArticleMapper;
 import com.blog.web.service.IArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,7 +64,7 @@ public class ArticleController {
      */
     @DeleteMapping("/deletecomment/{articleId}")
     public Result<Article> removeArticle(@PathVariable("articleId") Integer articleId) {
-        // 调用articleMapper的DeleteById方法，根据文章ID删除相关的评论。
+        // 调用articleMapper的DeleteById方法，根据文章ID删除。
         int rows = articleMapper.deleteById(articleId);
         // 检查删除操作影响的行数，如果大于0，则表示删除成功。
         if (rows > 0) {
@@ -146,6 +144,9 @@ public class ArticleController {
         // 如果文章标签ID不为空，更新文章标签ID
         if (article.getTagId() != null) {
             article.setTagId(article.getTagId());
+        }
+        if(article.getBackgroundPath() != null){
+            article.setBackgroundPath(article.getBackgroundPath());
         }
 
         // 更新数据库中的文章信息
