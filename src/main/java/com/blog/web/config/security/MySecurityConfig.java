@@ -74,20 +74,25 @@ public class MySecurityConfig {
                 // 指定哪些请求路径需要ADMIN角色
                 .requestMatchers("/api/user/adduser",
                                 "/api/user/getalluser",
+                                "/api/user/deleteuser/",
+                                "/api/user/addtag",
                                 "/api/tag/deletetag/**",
+                                "/api/tag/updatetag",
                                 "/api/media/deletemedia/**",
+                                "/api/media/getallmedia",
                                 "/api/comment/getallcomment/**",
                                 "/api/comment/updatecomment/**",
+                                "/api/category/addcategory",
                                 "/api/category/deletecategory/**",
-                                "/api/article/deletecomment/**").hasRole("ADMIN")
+                                "/api/category/updatecategory",
+                                "/api/article/addarticle",
+                                "/api/article/deletearticle/**",
+                                "/api/article/updatearticle").hasRole("ADMIN")
                 // 其他所有请求都需要认证
                 .anyRequest().authenticated()
                 .and()
                 // 在UsernamePasswordAuthenticationFilter之前添加自定义的JWT认证过滤器
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // 配置注销功能
-                .logout().logoutUrl("/api/user/logout")
-                .permitAll();
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // 返回构建后的SecurityFilterChain对象
         return http.build();
     }

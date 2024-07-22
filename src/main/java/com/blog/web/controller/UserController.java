@@ -256,29 +256,33 @@ public class UserController {
      */
     @PostMapping("/logout")
     public Result<String> logout(HttpServletRequest request) {
-        // 获取请求头中的Authorization信息，用于验证Token。
-        String authHeader = request.getHeader("Authorization");
+            // 获取请求头中的Authorization信息，用于验证Token。
+            String authHeader = request.getHeader("Authorization");
 
-        // 检查Authorization信息是否存在且以Bearer开头。
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // 从Authorization信息中提取Token。
-            String token = authHeader.substring(7);
+            // 检查Authorization信息是否存在且以Bearer开头。
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                // 从Authorization信息中提取Token。
+                String token = authHeader.substring(7);
 
-            // 验证Token是否有效
-            if (jwtUtilService.validateToken(token)) {
-                // 从Token中提取用户名
-                String username = jwtUtilService.extractUsernameFromToken(token);
+                // 验证Token是否有效
+                if (jwtUtilService.validateToken(token)) {
+                    // 从Token中提取用户名
+                    String username = jwtUtilService.extractUsernameFromToken(token);
+                    Boolean hasToken = redisTemplate.hasKey("token:" + username);
+                    if (hasToken == null || !hasToken) {
+                        return Result.error("Token已失效");
+                    }
 
-                // 删除Redis中的Token
-                redisTemplate.delete("token:" + username);
+                    // 删除Redis中的Token
+                    redisTemplate.delete("token:" + username);
 
-                // 返回注销成功的信息。
-                return Result.success("注销成功");
+                    // 返回注销成功的信息。
+                    return Result.success("注销成功");
+                }
             }
-        }
 
-        // 如果Token无效或不存在，则返回Token失效的错误信息。
-        return Result.error("Token已失效");
+            // 如果Token无效或不存在，则返回Token失效的错误信息。
+            return Result.error("Token已失效");
     }
 
     /**

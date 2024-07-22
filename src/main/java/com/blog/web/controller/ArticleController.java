@@ -62,7 +62,7 @@ public class ArticleController {
      * @return 如果删除成功，返回一个成功的Result对象；否则返回一个错误的Result对象。
      * Result对象封装了操作的结果状态和可能的错误信息。
      */
-    @DeleteMapping("/deletecomment/{articleId}")
+    @DeleteMapping("/deletearticle/{articleId}")
     public Result<Article> removeArticle(@PathVariable("articleId") Integer articleId) {
         // 调用articleMapper的DeleteById方法，根据文章ID删除。
         int rows = articleMapper.deleteById(articleId);
